@@ -1,10 +1,11 @@
 import { Module } from '@nestjs/common';
+import { appConfig } from './config';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { ConfigModule } from '@nestjs/config';
-import { appConfig } from './config';
-import { PrismaModule } from '@/modules/prisma/prisma.module';
+import { PrismaModule } from 'nestjs-prisma';
 import { ApiModule } from '@/api/api.module';
+import { providePrismaClientExceptionFilter } from '@/filters';
 
 @Module({
   imports: [
@@ -12,10 +13,12 @@ import { ApiModule } from '@/api/api.module';
       isGlobal: true,
       load: [appConfig],
     }),
-    PrismaModule,
+    PrismaModule.forRoot({
+      isGlobal: true,
+    }),
     ApiModule,
   ],
   controllers: [AppController],
-  providers: [AppService],
+  providers: [AppService, providePrismaClientExceptionFilter()],
 })
 export class AppModule {}
