@@ -1,0 +1,90 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id       Int     @id @default(autoincrement())
+  email    String  @unique @db.VarChar(100)
+  phone    String? @unique @db.VarChar(20)
+  authCode String? @db.VarChar(6)
+  darkMode Boolean @default(false)
+  language String  @default("ru") @db.VarChar(2)
+
+  incomeSources     IncomeSource[]
+  accumulatedFunds  AccumulatedFunds[]
+  accumulationFunds AccumulationFunds[]
+  monthlyExpenses   MonthlyExpense[]
+  purchases         Purchase[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model IncomeSource {
+  id          Int     @id @default(autoincrement())
+  title       String  @db.VarChar(100)
+  description String? @db.Text
+  amount      Float   @db.DoublePrecision
+  currency    String  @db.VarChar(3)
+
+  User   User? @relation(fields: [userId], references: [id])
+  userId Int?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model AccumulatedFunds {
+  id       Int    @id @default(autoincrement())
+  source   String @db.VarChar(100)
+  amount   Float  @db.DoublePrecision
+  currency String @db.VarChar(3)
+
+  User   User? @relation(fields: [userId], references: [id])
+  userId Int?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model AccumulationFunds {
+  id      Int   @id @default(autoincrement())
+  percent Float @db.DoublePrecision
+
+  User   User? @relation(fields: [userId], references: [id])
+  userId Int?
+}
+
+model MonthlyExpense {
+  id       Int    @id @default(autoincrement())
+  title    String @db.VarChar(100)
+  amount   Float  @db.DoublePrecision
+  currency String @db.VarChar(3)
+
+  User   User? @relation(fields: [userId], references: [id])
+  userId Int?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Purchase {
+  id       Int    @id @default(autoincrement())
+  title    String @db.VarChar(100)
+  price    Float  @db.DoublePrecision
+  currency String @db.VarChar(3)
+
+  User   User? @relation(fields: [userId], references: [id])
+  userId Int?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
