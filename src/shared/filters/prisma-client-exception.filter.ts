@@ -1,6 +1,6 @@
+import { HttpStatus } from '@nestjs/common';
 import { providePrismaClientExceptionFilter as _providePrismaClientExceptionFilter } from 'nestjs-prisma';
 import { ErrorCodesStatusMapping } from 'nestjs-prisma/dist/prisma-client-exception.filter';
-import { HttpStatus } from '@nestjs/common';
 
 export const providePrismaClientExceptionFilter = (errorCodesStatusMapping?: ErrorCodesStatusMapping) =>
   _providePrismaClientExceptionFilter({
