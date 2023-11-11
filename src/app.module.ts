@@ -8,14 +8,14 @@ import { SharedModule } from '@/shared/shared.module';
 
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
-import { appConfig } from './config';
+import { appConfig, databaseConfig, smtpConfig } from './config';
 import { AuthModule } from './modules/auth/auth.module';
 
 @Module({
   imports: [
     ConfigModule.forRoot({
       isGlobal: true,
-      load: [appConfig],
+      load: [appConfig, databaseConfig, smtpConfig],
     }),
     PrismaModule.forRoot({
       isGlobal: true,

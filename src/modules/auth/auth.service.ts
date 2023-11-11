@@ -4,6 +4,8 @@ import { PrismaService } from 'nestjs-prisma';
 
 import { UserEntity } from '@/api/user/entities/user.entity';
 import { UserService } from '@/api/user/user.service';
+import { NotifierService } from '@/modules/notifier/notifier.service';
+import { generateAuthCode } from '@/shared/utils';
 
 import { LoginAuthDto } from './dto/login-auth.dto';
 import { VerifyAuthDto } from './dto/verify-auth.dto';
@@ -15,6 +17,7 @@ export class AuthService {
     private readonly prisma: PrismaService,
     private readonly userService: UserService,
     private readonly jwtService: JwtService,
+    private readonly notifier: NotifierService,
   ) {}
 
   async detectUser(data: LoginAuthDto): Promise<UserEntity> {
@@ -26,11 +29,17 @@ export class AuthService {
       user = await this.userService.create({ email, phone });
     }
 
-    const authCode = '586325'; // generateAuthCode();
+    const authCode = generateAuthCode();
 
     user = await this.userService.update(user.id, { authCode });
 
     console.log(authCode); // sendCodeToUser(authCode);
+    this.notifier.sendMail<UserEntity>({
+      to: user.email,
+      subject: 'Magermoney Auth Code',
+      template: 'auth-code',
+      context: user,
+    });
 
     delete user.authCode;
 
