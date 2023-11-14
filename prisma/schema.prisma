@@ -11,12 +11,13 @@ datasource db {
 }
 
 model User {
-  id       Int     @id @default(autoincrement())
-  email    String  @unique @db.VarChar(100)
-  phone    String? @unique @db.VarChar(20)
-  authCode String? @db.VarChar(6)
-  darkMode Boolean @default(false)
-  language String  @default("ru") @db.VarChar(2)
+  id          Int     @id @default(autoincrement())
+  email       String  @unique @db.VarChar(100)
+  phone       String? @unique @db.VarChar(20)
+  authCode    String? @db.VarChar(6)
+  darkMode    Boolean @default(false)
+  language    String  @default("ru") @db.VarChar(2)
+  isFirstTime Boolean @default(true)
 
   incomeSources     IncomeSource[]
   accumulatedFunds  AccumulatedFunds[]

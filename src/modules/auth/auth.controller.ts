@@ -1,6 +1,8 @@
 import { Body, Controller, Post } from '@nestjs/common';
-import { ApiTags } from '@nestjs/swagger';
+import { ApiCreatedResponse, ApiTags } from '@nestjs/swagger';
 
+import { DetectUserDto } from '@/modules/auth/dto/detect-user.dto';
+import { VerifyUserDto } from '@/modules/auth/dto/verify-user.dto';
 import { IsPublic } from '@/shared/decorators';
 
 import { AuthService } from './auth.service';
@@ -14,13 +16,15 @@ export class AuthController {
 
   @Post('detect-user')
   @IsPublic()
-  detectUser(@Body() data: LoginAuthDto) {
+  @ApiCreatedResponse({ type: DetectUserDto })
+  detectUser(@Body() data: LoginAuthDto): Promise<DetectUserDto> {
     return this.authService.detectUser(data);
   }
 
-  @Post('verify-code')
+  @Post('verify-user')
   @IsPublic()
-  verifyUser(@Body() data: VerifyAuthDto) {
+  @ApiCreatedResponse({ type: VerifyUserDto })
+  verifyUser(@Body() data: VerifyAuthDto): Promise<VerifyUserDto> {
     return this.authService.verifyCode(data);
   }
 }

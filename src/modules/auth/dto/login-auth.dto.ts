@@ -7,6 +7,6 @@ export class LoginAuthDto {
   public readonly email?: string;
 
   @ApiProperty({ required: false, nullable: true })
-  @IsPhoneNumber()
+  @IsPhoneNumber('RU')
   public readonly phone?: string;
 }

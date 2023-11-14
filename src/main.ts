@@ -38,7 +38,9 @@ async function bootstrap() {
     .addBearerAuth()
     .build();
   const swaggerDocument = SwaggerModule.createDocument(app, swaggerConfig);
-  const swaggerPath = `${config.get<string>('apiPrefix')}/${config.get<string>('apiDocsPath')}`;
+  const swaggerPath = `${config.get<string>('apiPrefix')}/${config.get<string>('apiVersion')}/${config.get<string>(
+    'apiDocsPath',
+  )}`;
 
   SwaggerModule.setup(swaggerPath, app, swaggerDocument);
 

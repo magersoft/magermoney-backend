@@ -1,9 +1,9 @@
 import { Injectable, UnauthorizedException } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
-import { PrismaService } from 'nestjs-prisma';
 
 import { UserEntity } from '@/api/user/entities/user.entity';
 import { UserService } from '@/api/user/user.service';
+import { DetectUserDto } from '@/modules/auth/dto/detect-user.dto';
 import { NotifierService } from '@/modules/notifier/notifier.service';
 import { generateAuthCode } from '@/shared/utils';
 
@@ -14,13 +14,12 @@ import { JwtPayload } from './strategies/jwt.strategy';
 @Injectable()
 export class AuthService {
   constructor(
-    private readonly prisma: PrismaService,
     private readonly userService: UserService,
     private readonly jwtService: JwtService,
     private readonly notifier: NotifierService,
   ) {}
 
-  async detectUser(data: LoginAuthDto): Promise<UserEntity> {
+  async detectUser(data: LoginAuthDto): Promise<DetectUserDto> {
     const { email, phone } = data;
 
     let user = await this.userService.findOneByEmailOrPhone(email, phone);
@@ -34,16 +33,14 @@ export class AuthService {
     user = await this.userService.update(user.id, { authCode });
 
     console.log(authCode); // sendCodeToUser(authCode);
-    this.notifier.sendMail<UserEntity>({
-      to: user.email,
-      subject: 'Magermoney Auth Code',
-      template: 'auth-code',
-      context: user,
-    });
+    // this.notifier.sendMail<UserEntity>({
+    //   to: user.email,
+    //   subject: 'Magermoney Auth Code',
+    //   template: 'auth-code',
+    //   context: user,
+    // });
 
-    delete user.authCode;
-
-    return user;
+    return { id: user.id };
   }
 
   async verifyCode(data: VerifyAuthDto) {
@@ -64,7 +61,7 @@ export class AuthService {
     const payload: JwtPayload = { email: user.email, phone: user.phone, sub: user.id };
 
     return {
-      access_token: !user.authCode ? this.jwtService.sign(payload) : null,
+      accessToken: !user.authCode ? this.jwtService.sign(payload) : null,
       email: user.email,
       phone: user.phone,
     };
