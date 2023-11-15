@@ -9,8 +9,8 @@ import { AuthService } from './auth.service';
 import { LoginAuthDto } from './dto/login-auth.dto';
 import { VerifyAuthDto } from './dto/verify-auth.dto';
 
-@ApiTags('Auth')
 @Controller('auth')
+@ApiTags('auth')
 export class AuthController {
   constructor(private readonly authService: AuthService) {}
 

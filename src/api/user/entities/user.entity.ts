@@ -1,9 +1,8 @@
 import { ApiProperty } from '@nestjs/swagger';
 
-export class UserEntity {
-  @ApiProperty()
-  public id: number;
+import { BaseEntity } from '@/shared/entities/base.entity';
 
+export class UserEntity extends BaseEntity {
   @ApiProperty()
   public email: string;
 
@@ -16,12 +15,9 @@ export class UserEntity {
   @ApiProperty({ default: false })
   public darkMode?: boolean = false;
 
+  @ApiProperty({ default: false })
+  public isFirstTime?: boolean = false;
+
   @ApiProperty()
   public language: string;
-
-  @ApiProperty()
-  public createdAt: Date;
-
-  @ApiProperty()
-  public updatedAt: Date;
 }

@@ -28,17 +28,19 @@ export class AuthService {
       user = await this.userService.create({ email, phone });
     }
 
-    const authCode = generateAuthCode();
+    if (!user.authCode) {
+      const authCode = generateAuthCode();
 
-    user = await this.userService.update(user.id, { authCode });
+      user = await this.userService.update(user.id, { authCode });
 
-    console.log(authCode); // sendCodeToUser(authCode);
-    // this.notifier.sendMail<UserEntity>({
-    //   to: user.email,
-    //   subject: 'Magermoney Auth Code',
-    //   template: 'auth-code',
-    //   context: user,
-    // });
+      console.log(authCode); // sendCodeToUser(authCode);
+      // this.notifier.sendMail<UserEntity>({
+      //   to: user.email,
+      //   subject: 'Magermoney Auth Code',
+      //   template: 'auth-code',
+      //   context: user,
+      // });
+    }
 
     return { id: user.id };
   }

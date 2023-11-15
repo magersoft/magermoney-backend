@@ -2,7 +2,7 @@ import { ApiProperty } from '@nestjs/swagger';
 import { IsBoolean, IsEmail, IsOptional, IsPhoneNumber } from 'class-validator';
 
 export class CreateUserDto {
-  @ApiProperty({ required: true, uniqueItems: true })
+  @ApiProperty({ uniqueItems: true })
   @IsEmail()
   public readonly email: string;
 
