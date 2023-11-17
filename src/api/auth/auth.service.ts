@@ -1,4 +1,5 @@
-import { Injectable, UnauthorizedException } from '@nestjs/common';
+import { Injectable, Logger, UnauthorizedException } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
 import { JwtService } from '@nestjs/jwt';
 
 import { DetectUserDto } from '@/api/auth/dto/detect-user.dto';
@@ -13,13 +14,19 @@ import { JwtPayload } from './strategies/jwt.strategy';
 
 @Injectable()
 export class AuthService {
+  private readonly logger = new Logger(AuthService.name);
+  private isDev: boolean = false;
+
   constructor(
     private readonly userService: UserService,
     private readonly jwtService: JwtService,
     private readonly notifier: NotifierService,
-  ) {}
+    private readonly configService: ConfigService,
+  ) {
+    this.isDev = this.configService.get<boolean>('isDev');
+  }
 
-  async detectUser(data: LoginAuthDto): Promise<DetectUserDto> {
+  public async detectUser(data: LoginAuthDto): Promise<DetectUserDto> {
     const { email, phone } = data;
 
     let user = await this.userService.findOneByEmailOrPhone(email, phone);
@@ -33,19 +40,22 @@ export class AuthService {
 
       user = await this.userService.update(user.id, { authCode });
 
-      console.log(authCode); // sendCodeToUser(authCode);
-      // this.notifier.sendMail<UserEntity>({
-      //   to: user.email,
-      //   subject: 'Magermoney Auth Code',
-      //   template: 'auth-code',
-      //   context: user,
-      // });
+      if (this.isDev) {
+        this.logger.debug(`Auth code: ${authCode}`);
+      } else {
+        this.notifier.sendMail<UserEntity>({
+          to: user.email,
+          subject: 'Magermoney Auth Code',
+          template: 'auth-code',
+          context: user,
+        });
+      }
     }
 
     return { id: user.id };
   }
 
-  async verifyCode(data: VerifyAuthDto) {
+  public async verifyCode(data: VerifyAuthDto) {
     const { userId, authCode } = data;
 
     let user = await this.userService.findOne(userId);
@@ -59,7 +69,7 @@ export class AuthService {
     return await this.login(user);
   }
 
-  async login(user: UserEntity) {
+  public async login(user: UserEntity) {
     const payload: JwtPayload = { email: user.email, phone: user.phone, sub: user.id };
 
     return {

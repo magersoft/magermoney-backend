@@ -20,7 +20,7 @@ export class CurrencyService {
     this.isDev = this.configService.get<boolean>('isDev');
   }
 
-  async getCurrencies(): Promise<CurrencyEntity[]> {
+  public async getCurrencies(): Promise<CurrencyEntity[]> {
     if (this.isDev)
       return new Promise((resolve) =>
         setTimeout(() => resolve(mapCurrencies(mocksCurrenciesApiData)), this.configService.get<number>('mocksDelay')),

@@ -9,5 +9,5 @@ export default () => ({
   apiVersion: process.env.APP_API_VERSION || 'v1',
   apiDocsPath: process.env.APP_API_DOCS_PATH || 'docs',
   jwtSecret: process.env.APP_JWT_SECRET || generateJwtSecret(),
-  mocksDelay: 2000,
+  mocksDelay: 1000,
 });

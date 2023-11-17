@@ -27,11 +27,13 @@ export class IncomeSourceController {
   }
 
   @Get(':id')
+  @ApiOkResponse({ type: IncomeSourceEntity })
   findOne(@Request() req: RequestContext, @Param('id') id: string) {
     return this.incomeSourceService.findOne(req, +id);
   }
 
   @Patch(':id')
+  @ApiOkResponse({ type: IncomeSourceEntity })
   update(
     @Request() req: RequestContext,
     @Param('id') id: string,
@@ -41,6 +43,7 @@ export class IncomeSourceController {
   }
 
   @Delete(':id')
+  @ApiOkResponse({ type: IncomeSourceEntity })
   remove(@Request() req: RequestContext, @Param('id') id: string) {
     return this.incomeSourceService.remove(req, +id);
   }
