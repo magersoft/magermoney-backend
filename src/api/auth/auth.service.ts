@@ -1,11 +1,11 @@
 import { Injectable, UnauthorizedException } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 
+import { DetectUserDto } from '@/api/auth/dto/detect-user.dto';
+import { generateAuthCode } from '@/api/auth/utils';
 import { UserEntity } from '@/api/user/entities/user.entity';
 import { UserService } from '@/api/user/user.service';
-import { DetectUserDto } from '@/modules/auth/dto/detect-user.dto';
 import { NotifierService } from '@/modules/notifier/notifier.service';
-import { generateAuthCode } from '@/shared/utils';
 
 import { LoginAuthDto } from './dto/login-auth.dto';
 import { VerifyAuthDto } from './dto/verify-auth.dto';

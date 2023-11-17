@@ -1,4 +1,4 @@
-import { generateJwtSecret } from '@/shared/utils';
+import { generateJwtSecret } from '@/api/auth/utils';
 
 export default () => ({
   port: process.env.APP_PORT || 4000,
@@ -9,4 +9,5 @@ export default () => ({
   apiVersion: process.env.APP_API_VERSION || 'v1',
   apiDocsPath: process.env.APP_API_DOCS_PATH || 'docs',
   jwtSecret: process.env.APP_JWT_SECRET || generateJwtSecret(),
+  mocksDelay: 2000,
 });

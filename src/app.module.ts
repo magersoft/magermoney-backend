@@ -8,21 +8,19 @@ import { SharedModule } from '@/shared/shared.module';
 
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
-import { appConfig, databaseConfig, smtpConfig } from './config';
-import { AuthModule } from './modules/auth/auth.module';
+import { appConfig, currencyConfig, databaseConfig, smtpConfig } from './config';
 
 @Module({
   imports: [
     ConfigModule.forRoot({
       isGlobal: true,
-      load: [appConfig, databaseConfig, smtpConfig],
+      load: [appConfig, databaseConfig, smtpConfig, currencyConfig],
     }),
     PrismaModule.forRoot({
       isGlobal: true,
     }),
     SharedModule,
     ApiModule,
-    AuthModule,
   ],
   controllers: [AppController],
   providers: [AppService, providePrismaClientExceptionFilter()],

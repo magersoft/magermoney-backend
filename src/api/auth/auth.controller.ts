@@ -1,8 +1,8 @@
 import { Body, Controller, Post } from '@nestjs/common';
 import { ApiCreatedResponse, ApiTags } from '@nestjs/swagger';
 
-import { DetectUserDto } from '@/modules/auth/dto/detect-user.dto';
-import { VerifyUserDto } from '@/modules/auth/dto/verify-user.dto';
+import { DetectUserDto } from '@/api/auth/dto/detect-user.dto';
+import { VerifyUserDto } from '@/api/auth/dto/verify-user.dto';
 import { IsPublic } from '@/shared/decorators';
 
 import { AuthService } from './auth.service';
