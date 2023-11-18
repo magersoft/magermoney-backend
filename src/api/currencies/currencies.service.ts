@@ -4,13 +4,13 @@ import { ConfigService } from '@nestjs/config';
 import { AxiosError } from 'axios';
 import { catchError, firstValueFrom } from 'rxjs';
 
-import { CurrencyEntity } from '@/api/currency/entities/currency.entity';
-import { mocksCurrenciesApiData } from '@/api/currency/mocks/mocksCurrencies';
-import { mapCurrencies } from '@/api/currency/utils/mapCurrencies';
+import { CurrencyEntity } from '@/api/currencies/entities/currency.entity';
+import { mocksCurrenciesApiData } from '@/api/currencies/mocks/mocksCurrencies';
+import { mapCurrencies } from '@/api/currencies/utils/mapCurrencies';
 
 @Injectable()
-export class CurrencyService {
-  private readonly logger = new Logger(CurrencyService.name);
+export class CurrenciesService {
+  private readonly logger = new Logger(CurrenciesService.name);
   private isDev: boolean = false;
 
   constructor(

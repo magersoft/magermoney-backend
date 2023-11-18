@@ -4,7 +4,7 @@ import { APP_GUARD } from '@nestjs/core';
 import { JwtModule } from '@nestjs/jwt';
 import { PassportModule } from '@nestjs/passport';
 
-import { UserModule } from '@/api/user/user.module';
+import { UsersModule } from '@/api/users/users.module';
 import { NotifierModule } from '@/modules/notifier/notifier.module';
 
 import { AuthController } from './auth.controller';
@@ -14,7 +14,7 @@ import { JwtStrategy } from './strategies/jwt.strategy';
 
 @Module({
   imports: [
-    UserModule,
+    UsersModule,
     PassportModule,
     JwtModule.registerAsync({
       useFactory: async (config: ConfigService) => ({

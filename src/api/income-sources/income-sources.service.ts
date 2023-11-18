@@ -7,7 +7,7 @@ import { CreateIncomeSourceDto } from './dto/create-income-source.dto';
 import { UpdateIncomeSourceDto } from './dto/update-income-source.dto';
 
 @Injectable()
-export class IncomeSourceService {
+export class IncomeSourcesService {
   constructor(private readonly prisma: PrismaService) {}
 
   public async create(req: RequestContext, createIncomeSourceDto: CreateIncomeSourceDto) {

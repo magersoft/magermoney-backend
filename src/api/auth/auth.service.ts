@@ -4,8 +4,8 @@ import { JwtService } from '@nestjs/jwt';
 
 import { DetectUserDto } from '@/api/auth/dto/detect-user.dto';
 import { generateAuthCode } from '@/api/auth/utils';
-import { UserEntity } from '@/api/user/entities/user.entity';
-import { UserService } from '@/api/user/user.service';
+import { UserEntity } from '@/api/users/entities/user.entity';
+import { UsersService } from '@/api/users/users.service';
 import { NotifierService } from '@/modules/notifier/notifier.service';
 
 import { LoginAuthDto } from './dto/login-auth.dto';
@@ -18,7 +18,7 @@ export class AuthService {
   private isDev: boolean = false;
 
   constructor(
-    private readonly userService: UserService,
+    private readonly usersService: UsersService,
     private readonly jwtService: JwtService,
     private readonly notifier: NotifierService,
     private readonly configService: ConfigService,
@@ -29,16 +29,16 @@ export class AuthService {
   public async detectUser(data: LoginAuthDto): Promise<DetectUserDto> {
     const { email, phone } = data;
 
-    let user = await this.userService.findOneByEmailOrPhone(email, phone);
+    let user = await this.usersService.findOneByEmailOrPhone(email, phone);
 
     if (!user) {
-      user = await this.userService.create({ email, phone });
+      user = await this.usersService.create({ email, phone });
     }
 
     if (!user.authCode) {
       const authCode = generateAuthCode();
 
-      user = await this.userService.update(user.id, { authCode });
+      user = await this.usersService.update(user.id, { authCode });
 
       if (this.isDev) {
         this.logger.debug(`Auth code: ${authCode}`);
@@ -58,13 +58,13 @@ export class AuthService {
   public async verifyCode(data: VerifyAuthDto) {
     const { userId, authCode } = data;
 
-    let user = await this.userService.findOne(userId);
+    let user = await this.usersService.findOne(userId);
 
     if (authCode !== user.authCode) {
       throw new UnauthorizedException('Wrong auth code');
     }
 
-    user = await this.userService.update(user.id, { authCode: null });
+    user = await this.usersService.update(user.id, { authCode: null });
 
     return await this.login(user);
   }

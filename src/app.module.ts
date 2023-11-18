@@ -8,13 +8,13 @@ import { SharedModule } from '@/shared/shared.module';
 
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
-import { appConfig, currencyConfig, databaseConfig, smtpConfig } from './config';
+import { appConfig, currenciesConfig, databaseConfig, smtpConfig } from './config';
 
 @Module({
   imports: [
     ConfigModule.forRoot({
       isGlobal: true,
-      load: [appConfig, databaseConfig, smtpConfig, currencyConfig],
+      load: [appConfig, databaseConfig, smtpConfig, currenciesConfig],
     }),
     PrismaModule.forRoot({
       isGlobal: true,
