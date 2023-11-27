@@ -1,5 +1,5 @@
 import { PickType } from '@nestjs/swagger';
 
-import { UserEntity } from '@/api/user/entities/user.entity';
+import { UserEntity } from '@/api/users/entities/user.entity';
 
 export class DetectUserDto extends PickType(UserEntity, ['id']) {}
