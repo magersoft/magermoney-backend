@@ -2,7 +2,7 @@ import { ApiProperty } from '@nestjs/swagger';
 
 import { BaseEntity } from '@/shared/entities/base.entity';
 
-export class AccumulatedFundEntity extends BaseEntity {
+export class SavedFundEntity extends BaseEntity {
   @ApiProperty()
   public source: string;
 

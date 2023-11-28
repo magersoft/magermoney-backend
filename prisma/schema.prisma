@@ -20,7 +20,7 @@ model User {
   isFirstTime Boolean @default(true)
 
   incomeSources     IncomeSource[]
-  accumulatedFunds  AccumulatedFunds[]
+  savedFunds        SavedFunds[]
   accumulationFunds AccumulationFunds[]
   monthlyExpenses   MonthlyExpense[]
   purchases         Purchase[]
@@ -43,7 +43,7 @@ model IncomeSource {
   updatedAt DateTime @updatedAt
 }
 
-model AccumulatedFunds {
+model SavedFunds {
   id       Int    @id @default(autoincrement())
   source   String @db.VarChar(100)
   amount   Float  @db.DoublePrecision

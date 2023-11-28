@@ -6,6 +6,7 @@ CREATE TABLE "User" (
     "authCode" VARCHAR(6),
     "darkMode" BOOLEAN NOT NULL DEFAULT false,
     "language" VARCHAR(2) NOT NULL DEFAULT 'ru',
+    "isFirstTime" BOOLEAN NOT NULL DEFAULT true,
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updatedAt" TIMESTAMP(3) NOT NULL,
 
@@ -27,7 +28,7 @@ CREATE TABLE "IncomeSource" (
 );
 
 -- CreateTable
-CREATE TABLE "AccumulatedFunds" (
+CREATE TABLE "SavedFunds" (
     "id" SERIAL NOT NULL,
     "source" VARCHAR(100) NOT NULL,
     "amount" DOUBLE PRECISION NOT NULL,
@@ -36,7 +37,7 @@ CREATE TABLE "AccumulatedFunds" (
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updatedAt" TIMESTAMP(3) NOT NULL,
 
-    CONSTRAINT "AccumulatedFunds_pkey" PRIMARY KEY ("id")
+    CONSTRAINT "SavedFunds_pkey" PRIMARY KEY ("id")
 );
 
 -- CreateTable
@@ -84,7 +85,7 @@ CREATE UNIQUE INDEX "User_phone_key" ON "User"("phone");
 ALTER TABLE "IncomeSource" ADD CONSTRAINT "IncomeSource_userId_fkey" FOREIGN KEY ("userId") REFERENCES "User"("id") ON DELETE SET NULL ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "AccumulatedFunds" ADD CONSTRAINT "AccumulatedFunds_userId_fkey" FOREIGN KEY ("userId") REFERENCES "User"("id") ON DELETE SET NULL ON UPDATE CASCADE;
+ALTER TABLE "SavedFunds" ADD CONSTRAINT "SavedFunds_userId_fkey" FOREIGN KEY ("userId") REFERENCES "User"("id") ON DELETE SET NULL ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "AccumulationFunds" ADD CONSTRAINT "AccumulationFunds_userId_fkey" FOREIGN KEY ("userId") REFERENCES "User"("id") ON DELETE SET NULL ON UPDATE CASCADE;

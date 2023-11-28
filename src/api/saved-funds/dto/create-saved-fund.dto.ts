@@ -1,7 +1,7 @@
 import { ApiProperty } from '@nestjs/swagger';
 import { IsDefined, IsNotEmpty, IsNumber, IsPositive, IsString, MaxLength } from 'class-validator';
 
-export class CreateAccumulatedFundDto {
+export class CreateSavedFundDto {
   @ApiProperty()
   @IsString()
   @IsDefined()
