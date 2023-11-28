@@ -1,4 +1,4 @@
-import { Controller, Get } from '@nestjs/common';
+import { Controller, Get, Param } from '@nestjs/common';
 import { ApiBearerAuth, ApiOkResponse, ApiTags } from '@nestjs/swagger';
 
 import { CurrenciesService } from '@/api/currencies/currencies.service';
@@ -12,7 +12,13 @@ export class CurrenciesController {
 
   @Get()
   @ApiOkResponse({ type: CurrencyEntity, isArray: true })
-  async getCurrencies() {
-    return this.currenciesService.getCurrencies();
+  findAll() {
+    return this.currenciesService.findAll();
+  }
+
+  @Get(':code')
+  @ApiOkResponse({ type: CurrencyEntity })
+  findOne(@Param('code') code: string) {
+    return this.currenciesService.findOne(code);
   }
 }
