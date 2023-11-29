@@ -13,6 +13,14 @@ export class AccumulationFundsService {
   public async create(req: RequestContext, createAccumulationFundDto: CreateAccumulationFundDto) {
     const { id: userId } = req.user;
 
+    const countOfAccumulationFunds = await this.prisma.accumulationFunds.count({
+      where: {
+        userId,
+      },
+    });
+
+    if (!!countOfAccumulationFunds) throw new ForbiddenException();
+
     return await this.prisma.accumulationFunds.create({
       data: { ...createAccumulationFundDto, userId },
     });

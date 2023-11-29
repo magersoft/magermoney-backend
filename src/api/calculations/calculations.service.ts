@@ -1,5 +1,7 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 
+import { AmountByPercentDto } from '@/api/calculations/dto/amount-by-percent.dto';
+import { PercentByAmountDto } from '@/api/calculations/dto/percent-by-amount.dto';
 import { CurrenciesService } from '@/api/currencies/currencies.service';
 import { IncomeSourcesService } from '@/api/income-sources/income-sources.service';
 import { RequestContext } from '@/shared/types';
@@ -11,7 +13,7 @@ export class CalculationsService {
     private readonly incomeSourcesService: IncomeSourcesService,
   ) {}
 
-  public async getPercentByAmount(req: RequestContext, amount: number, currency: string) {
+  public async getPercentByAmount(req: RequestContext, amount: number, currency: string): Promise<PercentByAmountDto> {
     if (await this.currenciesService.validateCurrency(currency)) {
       const incomeSources = await this.incomeSourcesService.findAll(req);
 
@@ -26,11 +28,16 @@ export class CalculationsService {
         }
       }, Promise.resolve(0));
 
-      return (amount / incomeSourcesAmount) * 100;
+      return {
+        percent: (amount / incomeSourcesAmount) * 100,
+        balance: incomeSourcesAmount - amount,
+        amount,
+        currency,
+      };
     }
   }
 
-  public async getAmountByPercent(req: RequestContext, percent: number, currency: string) {
+  public async getAmountByPercent(req: RequestContext, percent: number, currency: string): Promise<AmountByPercentDto> {
     if (await this.currenciesService.validateCurrency(currency)) {
       const incomeSources = await this.incomeSourcesService.findAll(req);
 
@@ -45,7 +52,14 @@ export class CalculationsService {
         }
       }, Promise.resolve(0));
 
-      return (incomeSourcesAmount / 100) * percent;
+      const amount = (incomeSourcesAmount / 100) * percent;
+
+      return {
+        amount,
+        balance: incomeSourcesAmount - amount,
+        percent,
+        currency,
+      };
     }
   }
 }
