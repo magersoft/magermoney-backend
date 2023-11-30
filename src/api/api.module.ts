@@ -8,6 +8,8 @@ import { IncomeSourcesModule } from '@/api/income-sources/income-sources.module'
 import { SavedFundsModule } from '@/api/saved-funds/saved-funds.module';
 import { UsersModule } from '@/api/users/users.module';
 
+import { MonthlyExpensesModule } from './monthly-expenses/monthly-expenses.module';
+
 @Module({
   imports: [
     AuthModule,
@@ -17,6 +19,7 @@ import { UsersModule } from '@/api/users/users.module';
     SavedFundsModule,
     AccumulationFundsModule,
     CalculationsModule,
+    MonthlyExpensesModule,
   ],
   exports: [
     AuthModule,
@@ -26,6 +29,7 @@ import { UsersModule } from '@/api/users/users.module';
     SavedFundsModule,
     AccumulationFundsModule,
     CalculationsModule,
+    MonthlyExpensesModule,
   ],
 })
 export class ApiModule {}
