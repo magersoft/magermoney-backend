@@ -1,6 +1,7 @@
 import { ForbiddenException, Injectable } from '@nestjs/common';
 import { PrismaService } from 'nestjs-prisma';
 
+import { CurrenciesService } from '@/api/currencies/currencies.service';
 import { RequestContext } from '@/shared/types';
 
 import { CreateIncomeSourceDto } from './dto/create-income-source.dto';
@@ -8,13 +9,19 @@ import { UpdateIncomeSourceDto } from './dto/update-income-source.dto';
 
 @Injectable()
 export class IncomeSourcesService {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly currenciesService: CurrenciesService,
+  ) {}
 
   public async create(req: RequestContext, createIncomeSourceDto: CreateIncomeSourceDto) {
     const { id: userId } = req.user;
+    const { currency, ...incomeSourceDto } = createIncomeSourceDto;
+    const { id: currencyId } = await this.currenciesService.findOne(currency);
 
     return await this.prisma.incomeSource.create({
-      data: { ...createIncomeSourceDto, userId },
+      data: { ...incomeSourceDto, userId, currencyId },
+      include: { currency: true },
     });
   }
 
@@ -25,13 +32,17 @@ export class IncomeSourcesService {
       where: {
         userId,
       },
+      include: { currency: true },
     });
   }
 
   public async findOne(req: RequestContext, id: number) {
     const { id: userId } = req.user;
 
-    const incomeSource = await this.prisma.incomeSource.findUnique({ where: { id } });
+    const incomeSource = await this.prisma.incomeSource.findUniqueOrThrow({
+      where: { id },
+      include: { currency: true },
+    });
 
     if (incomeSource.userId !== userId) throw new ForbiddenException();
 
@@ -42,12 +53,16 @@ export class IncomeSourcesService {
     const { id: userId } = req.user;
     const incomeSource = await this.findOne(req, id);
 
+    const { currency, ...incomeSourceDto } = updateIncomeSourceDto;
+    const { id: currencyId } = await this.currenciesService.findOne(currency);
+
     return await this.prisma.incomeSource.update({
       where: {
         id: incomeSource.id,
         userId,
       },
-      data: updateIncomeSourceDto,
+      data: { ...incomeSourceDto, currencyId },
+      include: { currency: true },
     });
   }
 
@@ -55,6 +70,9 @@ export class IncomeSourcesService {
     const { id: userId } = req.user;
     const incomeSource = await this.findOne(req, id);
 
-    return await this.prisma.incomeSource.delete({ where: { id: incomeSource.id, userId } });
+    return await this.prisma.incomeSource.delete({
+      where: { id: incomeSource.id, userId },
+      include: { currency: true },
+    });
   }
 }

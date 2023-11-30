@@ -20,10 +20,13 @@ export class CalculationsService {
       if (!incomeSources.length) throw new NotFoundException('Income sources not found');
 
       const incomeSourcesAmount = await incomeSources.reduce(async (acc, incomeSource) => {
-        if (incomeSource.currency === currency) {
+        if (incomeSource.currency.code === currency) {
           return (await acc) + incomeSource.amount;
         } else {
-          const currencyExchangeRate = await this.currenciesService.getCurrencyRate(currency, incomeSource.currency);
+          const currencyExchangeRate = await this.currenciesService.getCurrencyRate(
+            currency,
+            incomeSource.currency.code,
+          );
           return (await acc) + incomeSource.amount / currencyExchangeRate;
         }
       }, Promise.resolve(0));
@@ -44,10 +47,13 @@ export class CalculationsService {
       if (!incomeSources.length) throw new NotFoundException('Income sources not found');
 
       const incomeSourcesAmount = await incomeSources.reduce(async (acc, incomeSource) => {
-        if (incomeSource.currency === currency) {
+        if (incomeSource.currency.code === currency) {
           return (await acc) + incomeSource.amount;
         } else {
-          const currencyExchangeRate = await this.currenciesService.getCurrencyRate(currency, incomeSource.currency);
+          const currencyExchangeRate = await this.currenciesService.getCurrencyRate(
+            currency,
+            incomeSource.currency.code,
+          );
           return (await acc) + incomeSource.amount / currencyExchangeRate;
         }
       }, Promise.resolve(0));

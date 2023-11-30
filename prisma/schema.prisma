@@ -34,23 +34,27 @@ model IncomeSource {
   title       String  @db.VarChar(100)
   description String? @db.Text
   amount      Float   @db.DoublePrecision
-  currency    String  @db.VarChar(3)
 
-  User   User? @relation(fields: [userId], references: [id], onDelete: Cascade)
-  userId Int?
+  currency   Currency @relation(fields: [currencyId], references: [id])
+  currencyId Int
+
+  User   User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId Int
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 }
 
 model SavedFunds {
-  id       Int    @id @default(autoincrement())
-  source   String @db.VarChar(100)
-  amount   Float  @db.DoublePrecision
-  currency String @db.VarChar(3)
+  id     Int    @id @default(autoincrement())
+  source String @db.VarChar(100)
+  amount Float  @db.DoublePrecision
 
-  User   User? @relation(fields: [userId], references: [id], onDelete: Cascade)
-  userId Int?
+  currency   Currency @relation(fields: [currencyId], references: [id])
+  currencyId Int
+
+  User   User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId Int
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -60,18 +64,20 @@ model AccumulationFunds {
   id      Int   @id @default(autoincrement())
   percent Float @db.DoublePrecision
 
-  User   User? @relation(fields: [userId], references: [id], onDelete: Cascade)
-  userId Int?
+  User   User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId Int
 }
 
 model MonthlyExpense {
-  id       Int    @id @default(autoincrement())
-  title    String @db.VarChar(100)
-  amount   Float  @db.DoublePrecision
-  currency String @db.VarChar(3)
+  id     Int    @id @default(autoincrement())
+  title  String @db.VarChar(100)
+  amount Float  @db.DoublePrecision
 
-  User   User? @relation(fields: [userId], references: [id], onDelete: Cascade)
-  userId Int?
+  currency   Currency @relation(fields: [currencyId], references: [id])
+  currencyId Int
+
+  User   User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId Int
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -83,8 +89,8 @@ model Purchase {
   price    Float  @db.DoublePrecision
   currency String @db.VarChar(3)
 
-  User   User? @relation(fields: [userId], references: [id], onDelete: Cascade)
-  userId Int?
+  User   User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId Int
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -96,8 +102,11 @@ model Currency {
   name   String @db.VarChar(100)
   symbol String @db.VarChar(10)
 
-  CurrencyRateTo   CurrencyRate[] @relation(name: "CurrencyRateTo")
-  CurrencyRateFrom CurrencyRate[] @relation(name: "CurrencyRateFrom")
+  CurrencyRateTo   CurrencyRate[]   @relation(name: "CurrencyRateTo")
+  CurrencyRateFrom CurrencyRate[]   @relation(name: "CurrencyRateFrom")
+  IncomeSource     IncomeSource[]
+  SavedFunds       SavedFunds[]
+  MonthlyExpense   MonthlyExpense[]
 
   @@index([code])
 }

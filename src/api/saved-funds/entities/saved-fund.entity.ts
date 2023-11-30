@@ -1,5 +1,6 @@
 import { ApiProperty } from '@nestjs/swagger';
 
+import { CurrencyEntity } from '@/api/currencies/entities/currency.entity';
 import { BaseEntity } from '@/shared/entities/base.entity';
 
 export class SavedFundEntity extends BaseEntity {
@@ -9,9 +10,12 @@ export class SavedFundEntity extends BaseEntity {
   @ApiProperty()
   public amount: number;
 
-  @ApiProperty()
-  public currency: string;
+  @ApiProperty({ type: () => CurrencyEntity })
+  public currency: CurrencyEntity;
 
-  @ApiProperty({ required: false, nullable: true })
+  @ApiProperty()
+  public currencyId: string;
+
+  @ApiProperty()
   public userId: number;
 }

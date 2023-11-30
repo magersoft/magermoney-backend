@@ -63,7 +63,7 @@ export class CurrenciesService {
       return rate;
     }
 
-    if (currencyRate.updatedAt.getTime() + this.configService.get<number>('currencies.rateTTL') < Date.now()) {
+    if (currencyRate.updatedAt.getTime() + Number(this.configService.get<number>('currencies.rateTTL')) < Date.now()) {
       const rate = await this.fetchCurrencyExchangeRate(from, to);
 
       await this.prisma.currencyRate.update({
