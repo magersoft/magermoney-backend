@@ -1,5 +1,5 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { IsDefined, IsNumber, IsString, Length } from 'class-validator';
+import { IsBoolean, IsDefined, IsLocale, IsNumber, IsOptional, IsString, Length } from 'class-validator';
 
 export class VerifyAuthDto {
   @ApiProperty({ required: true })
@@ -12,4 +12,14 @@ export class VerifyAuthDto {
   @IsNumber()
   @IsDefined()
   public readonly userId: number;
+
+  @ApiProperty({ required: false, default: false })
+  @IsBoolean()
+  @IsOptional()
+  public readonly darkMode?: boolean;
+
+  @ApiProperty({ required: false })
+  @IsOptional()
+  @IsLocale()
+  public readonly language?: string;
 }

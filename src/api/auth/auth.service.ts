@@ -56,7 +56,7 @@ export class AuthService {
   }
 
   public async verifyCode(data: VerifyAuthDto) {
-    const { userId, authCode } = data;
+    const { userId, authCode, language, darkMode } = data;
 
     let user = await this.usersService.findOne(userId);
 
@@ -64,7 +64,7 @@ export class AuthService {
       throw new UnauthorizedException('Wrong auth code');
     }
 
-    user = await this.usersService.update(user.id, { authCode: null });
+    user = await this.usersService.update(user.id, { authCode: null, language, darkMode });
 
     return await this.login(user);
   }

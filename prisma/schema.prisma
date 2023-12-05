@@ -16,7 +16,7 @@ model User {
   phone       String? @unique @db.VarChar(20)
   authCode    String? @db.VarChar(6)
   darkMode    Boolean @default(false)
-  language    String  @default("ru") @db.VarChar(2)
+  language    String  @default("ru-RU") @db.VarChar(10)
   isFirstTime Boolean @default(true)
 
   incomeSources     IncomeSource[]
