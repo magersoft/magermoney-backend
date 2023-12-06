@@ -9,5 +9,6 @@ import { SavedFundsService } from './saved-funds.service';
   imports: [CurrenciesModule],
   controllers: [SavedFundsController],
   providers: [SavedFundsService],
+  exports: [SavedFundsService],
 })
 export class SavedFundsModule {}
