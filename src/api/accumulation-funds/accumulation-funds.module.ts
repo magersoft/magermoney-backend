@@ -7,5 +7,6 @@ import { AccumulationFundsService } from './accumulation-funds.service';
   imports: [],
   controllers: [AccumulationFundsController],
   providers: [AccumulationFundsService],
+  exports: [AccumulationFundsService],
 })
 export class AccumulationFundsModule {}

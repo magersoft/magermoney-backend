@@ -2,6 +2,7 @@ import { Controller, Get, Query, Request } from '@nestjs/common';
 import { ApiBearerAuth, ApiOkResponse, ApiTags } from '@nestjs/swagger';
 
 import { AmountByPercentDto } from '@/api/calculations/dto/amount-by-percent.dto';
+import { MonthlyBudgetDto } from '@/api/calculations/dto/monthly-budget.dto';
 import { PercentByAmountDto } from '@/api/calculations/dto/percent-by-amount.dto';
 import { TotalBalanceDto } from '@/api/calculations/dto/total-balance.dto';
 import { TotalExpensesDto } from '@/api/calculations/dto/total-expenses.dto';
@@ -32,6 +33,12 @@ export class CalculationsController {
   @ApiOkResponse({ type: TotalExpensesDto })
   getTotalExpenses(@Request() req: RequestContext, @Query('currency') currency: string): Promise<TotalExpensesDto> {
     return this.calculationsService.getTotalExpenses(req, currency);
+  }
+
+  @Get('monthly-budget')
+  @ApiOkResponse({ type: MonthlyBudgetDto })
+  getMonthlyBudget(@Request() req: RequestContext, @Query('currency') currency: string): Promise<MonthlyBudgetDto> {
+    return this.calculationsService.getMonthlyBudget(req, currency);
   }
 
   @Get('percent-by-amount')

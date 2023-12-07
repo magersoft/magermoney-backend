@@ -1,6 +1,8 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 
+import { AccumulationFundsService } from '@/api/accumulation-funds/accumulation-funds.service';
 import { AmountByPercentDto } from '@/api/calculations/dto/amount-by-percent.dto';
+import { MonthlyBudgetDto } from '@/api/calculations/dto/monthly-budget.dto';
 import { PercentByAmountDto } from '@/api/calculations/dto/percent-by-amount.dto';
 import { TotalBalanceDto } from '@/api/calculations/dto/total-balance.dto';
 import { TotalExpensesDto } from '@/api/calculations/dto/total-expenses.dto';
@@ -18,14 +20,13 @@ export class CalculationsService {
     private readonly incomeSourcesService: IncomeSourcesService,
     private readonly savedFundsService: SavedFundsService,
     private readonly monthlyExpensesService: MonthlyExpensesService,
+    private readonly accumulationFundsService: AccumulationFundsService,
   ) {}
 
   public async getTotalBalance(req: RequestContext, currency: string): Promise<TotalBalanceDto> {
     if (!(await this.currenciesService.validateCurrency(currency))) return;
 
     const savedFunds = await this.savedFundsService.findAll(req);
-
-    if (!savedFunds.length) throw new NotFoundException('Saved funds not found');
 
     const balance = await savedFunds.reduce(async (acc, savedFund) => {
       if (savedFund.currency.code === currency) {
@@ -46,8 +47,6 @@ export class CalculationsService {
     if (!(await this.currenciesService.validateCurrency(currency))) return;
 
     const incomeSources = await this.incomeSourcesService.findAll(req);
-
-    if (!incomeSources.length) throw new NotFoundException('Income sources not found');
 
     const incomeSourcesAmount = await incomeSources.reduce(async (acc, incomeSource) => {
       if (incomeSource.currency.code === currency) {
@@ -85,6 +84,29 @@ export class CalculationsService {
 
     return {
       amount: monthlyExpensesAmount,
+      currency,
+    };
+  }
+
+  public async getMonthlyBudget(req: RequestContext, currency: string): Promise<MonthlyBudgetDto> {
+    const { amount: totalExpensesAmount } = await this.getTotalExpenses(req, currency);
+    const { amount: totalIncomesAmount } = await this.getTotalIncomes(req, currency);
+
+    const accumulationFunds = await this.accumulationFundsService.findAll(req);
+
+    const accumulationFundPercent = await accumulationFunds.reduce((acc, accumulationFund) => {
+      return acc + accumulationFund.percent;
+    }, 0);
+
+    const accumulationFundAmount = (totalIncomesAmount / 100) * accumulationFundPercent;
+
+    const budget = totalIncomesAmount - totalExpensesAmount - accumulationFundAmount;
+
+    return {
+      budget,
+      spent: 0,
+      restAmount: budget, // @todo вычислить остаток из расходов
+      restAmountPercentage: (budget / totalIncomesAmount) * 100,
       currency,
     };
   }
