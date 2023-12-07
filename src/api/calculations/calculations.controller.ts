@@ -4,6 +4,8 @@ import { ApiBearerAuth, ApiOkResponse, ApiTags } from '@nestjs/swagger';
 import { AmountByPercentDto } from '@/api/calculations/dto/amount-by-percent.dto';
 import { PercentByAmountDto } from '@/api/calculations/dto/percent-by-amount.dto';
 import { TotalBalanceDto } from '@/api/calculations/dto/total-balance.dto';
+import { TotalExpensesDto } from '@/api/calculations/dto/total-expenses.dto';
+import { TotalIncomesDto } from '@/api/calculations/dto/total-incomes.dto';
 import { RequestContext } from '@/shared/types';
 
 import { CalculationsService } from './calculations.service';
@@ -18,6 +20,18 @@ export class CalculationsController {
   @ApiOkResponse({ type: TotalBalanceDto })
   getTotalBalance(@Request() req: RequestContext, @Query('currency') currency: string): Promise<TotalBalanceDto> {
     return this.calculationsService.getTotalBalance(req, currency);
+  }
+
+  @Get('total-incomes')
+  @ApiOkResponse({ type: TotalIncomesDto })
+  getTotalIncomes(@Request() req: RequestContext, @Query('currency') currency: string): Promise<TotalIncomesDto> {
+    return this.calculationsService.getTotalIncomes(req, currency);
+  }
+
+  @Get('total-expenses')
+  @ApiOkResponse({ type: TotalExpensesDto })
+  getTotalExpenses(@Request() req: RequestContext, @Query('currency') currency: string): Promise<TotalExpensesDto> {
+    return this.calculationsService.getTotalExpenses(req, currency);
   }
 
   @Get('percent-by-amount')
