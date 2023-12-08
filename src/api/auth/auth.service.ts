@@ -76,6 +76,7 @@ export class AuthService {
       accessToken: !user.authCode ? this.jwtService.sign(payload) : null,
       email: user.email,
       phone: user.phone,
+      isFirstTime: user.isFirstTime,
     };
   }
 }

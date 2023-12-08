@@ -1,3 +1,0 @@
--- AlterTable
-ALTER TABLE "User" ALTER COLUMN "language" SET DEFAULT 'ru-RU',
-ALTER COLUMN "language" SET DATA TYPE VARCHAR(10);

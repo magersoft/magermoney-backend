@@ -9,15 +9,15 @@ export class UsersService {
   constructor(private readonly prisma: PrismaService) {}
 
   public async create(createUserDto: CreateUserDto) {
-    return await this.prisma.user.create({ data: createUserDto });
+    return await this.prisma.users.create({ data: createUserDto });
   }
 
   public async findAll() {
-    return await this.prisma.user.findMany();
+    return await this.prisma.users.findMany();
   }
 
   public async findOne(id: number) {
-    const user = await this.prisma.user.findUnique({ where: { id } });
+    const user = await this.prisma.users.findUnique({ where: { id } });
 
     if (!user) throw new NotFoundException(`User not found`);
 
@@ -25,7 +25,7 @@ export class UsersService {
   }
 
   public async findOneByEmailOrPhone(email: string, phone: string) {
-    return await this.prisma.user.findFirst({
+    return await this.prisma.users.findFirst({
       where: {
         OR: [{ email }, { phone }],
       },
@@ -34,10 +34,10 @@ export class UsersService {
 
   public async update(id: number, updateUserDto: UpdateUserDto) {
     const user = await this.findOne(id);
-    return await this.prisma.user.update({ where: { id: user.id }, data: updateUserDto });
+    return await this.prisma.users.update({ where: { id: user.id }, data: updateUserDto });
   }
 
   public async remove(id: number) {
-    return await this.prisma.user.delete({ where: { id } });
+    return await this.prisma.users.delete({ where: { id } });
   }
 }

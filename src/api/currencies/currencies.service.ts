@@ -1,5 +1,11 @@
 import { HttpService } from '@nestjs/axios';
-import { Injectable, InternalServerErrorException, Logger } from '@nestjs/common';
+import {
+  BadRequestException,
+  Injectable,
+  InternalServerErrorException,
+  Logger,
+  NotFoundException,
+} from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { AxiosError } from 'axios';
 import { PrismaService } from 'nestjs-prisma';
@@ -26,95 +32,95 @@ export class CurrenciesService {
 
   public async findAll(): Promise<CurrencyEntity[]> {
     await this.fetchCurrencies();
-    return await this.prisma.currency.findMany();
+    return await this.prisma.currencies.findMany();
   }
 
   public async findOne(code: string): Promise<CurrencyEntity> {
     await this.fetchCurrencies();
-    return await this.prisma.currency.findUniqueOrThrow({
+    return await this.prisma.currencies.findUniqueOrThrow({
       where: {
         code,
       },
     });
   }
 
-  public async getCurrencyRate(from: string, to: string) {
-    const fromCurrency = await this.findOne(from);
-    const toCurrency = await this.findOne(to);
+  public async getExchangeRate(baseCurrency: string, targetCurrency: string) {
+    const fromCurrency = await this.findOne(baseCurrency);
+    const toCurrency = await this.findOne(targetCurrency);
 
-    const currencyRate = await this.prisma.currencyRate.findFirst({
+    const exchangeRate = await this.prisma.exchangeRates.findFirst({
       where: {
         fromId: fromCurrency.id,
         toId: toCurrency.id,
       },
     });
 
-    if (!currencyRate) {
-      const rate = await this.fetchCurrencyExchangeRate(from, to);
+    if (!exchangeRate) {
+      const currencyExchangeRate = await this.fetchCurrencyExchangeRate(baseCurrency, targetCurrency);
 
-      await this.prisma.currencyRate.create({
+      const { rate } = await this.prisma.exchangeRates.create({
         data: {
           fromId: fromCurrency.id,
           toId: toCurrency.id,
-          rate,
+          rate: currencyExchangeRate,
         },
       });
 
       return rate;
     }
 
-    if (currencyRate.updatedAt.getTime() + Number(this.configService.get<number>('currencies.rateTTL')) < Date.now()) {
-      const rate = await this.fetchCurrencyExchangeRate(from, to);
+    if (exchangeRate.updatedAt.getTime() + Number(this.configService.get<number>('currencies.rateTTL')) < Date.now()) {
+      const currencyExchangeRate = await this.fetchCurrencyExchangeRate(baseCurrency, targetCurrency);
 
-      await this.prisma.currencyRate.update({
+      const { rate } = await this.prisma.exchangeRates.update({
         where: {
-          id: currencyRate.id,
+          id: exchangeRate.id,
         },
         data: {
-          rate,
+          rate: currencyExchangeRate,
         },
       });
 
       return rate;
     }
 
-    return currencyRate.rate;
+    return exchangeRate.rate;
   }
 
   public async validateCurrency(currency: string) {
     const currencies = await this.findAll();
     const currencyExists = currencies.find((c) => c.code === currency);
     if (!currencyExists) {
-      throw new Error(`Currency ${currency} does not exist`);
+      throw new NotFoundException(`Currency ${currency} does not exist`);
     }
 
     return true;
   }
 
-  private async fetchCurrencyExchangeRate(from: string, to: string): Promise<number> {
+  private async fetchCurrencyExchangeRate(baseCurrency: string, targetCurrency: string): Promise<number> {
     const { data } = await firstValueFrom(
       this.httpService
         .get(this.configService.get<string>('currencies.ratesEndpoint'), {
           params: {
-            base_currency: from,
-            currencies: to,
+            base_currency: baseCurrency,
+            currencies: targetCurrency,
           },
         })
         .pipe(
           catchError((error: AxiosError) => {
             this.logger.error(error.response.data);
-            throw new InternalServerErrorException();
+            throw new BadRequestException('Currencies API error');
           }),
         ),
     );
 
-    return data.data[to];
+    return data.data[targetCurrency];
   }
 
   private async fetchCurrencies(): Promise<void> {
     let currencies: Omit<CurrencyEntity, 'id'>[];
 
-    const countCurrencies = await this.prisma.currency.count();
+    const countCurrencies = await this.prisma.currencies.count();
     if (countCurrencies) return;
 
     this.logger.warn('Currencies were not found in database, fetching...');
@@ -136,7 +142,7 @@ export class CurrenciesService {
       currencies = mapCurrencies(data);
     }
 
-    const { count } = await this.prisma.currency.createMany({
+    const { count } = await this.prisma.currencies.createMany({
       data: currencies,
       skipDuplicates: true,
     });

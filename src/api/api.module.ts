@@ -4,11 +4,10 @@ import { AccumulationFundsModule } from '@/api/accumulation-funds/accumulation-f
 import { AuthModule } from '@/api/auth/auth.module';
 import { CalculationsModule } from '@/api/calculations/calculations.module';
 import { CurrenciesModule } from '@/api/currencies/currencies.module';
+import { ExpenseSourcesModule } from '@/api/expense-sources/expense-sources.module';
 import { IncomeSourcesModule } from '@/api/income-sources/income-sources.module';
 import { SavedFundsModule } from '@/api/saved-funds/saved-funds.module';
 import { UsersModule } from '@/api/users/users.module';
-
-import { MonthlyExpensesModule } from './monthly-expenses/monthly-expenses.module';
 
 @Module({
   imports: [
@@ -19,7 +18,7 @@ import { MonthlyExpensesModule } from './monthly-expenses/monthly-expenses.modul
     SavedFundsModule,
     AccumulationFundsModule,
     CalculationsModule,
-    MonthlyExpensesModule,
+    ExpenseSourcesModule,
   ],
   exports: [
     AuthModule,
@@ -29,7 +28,7 @@ import { MonthlyExpensesModule } from './monthly-expenses/monthly-expenses.modul
     SavedFundsModule,
     AccumulationFundsModule,
     CalculationsModule,
-    MonthlyExpensesModule,
+    ExpenseSourcesModule,
   ],
 })
 export class ApiModule {}

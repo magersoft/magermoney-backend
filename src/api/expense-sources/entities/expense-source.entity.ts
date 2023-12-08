@@ -3,7 +3,7 @@ import { ApiProperty } from '@nestjs/swagger';
 import { CurrencyEntity } from '@/api/currencies/entities/currency.entity';
 import { BaseEntity } from '@/shared/entities/base.entity';
 
-export class MonthlyExpenseEntity extends BaseEntity {
+export class ExpenseSourceEntity extends BaseEntity {
   @ApiProperty()
   public title: string;
 

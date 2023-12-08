@@ -8,8 +8,8 @@ import { TotalBalanceDto } from '@/api/calculations/dto/total-balance.dto';
 import { TotalExpensesDto } from '@/api/calculations/dto/total-expenses.dto';
 import { TotalIncomesDto } from '@/api/calculations/dto/total-incomes.dto';
 import { CurrenciesService } from '@/api/currencies/currencies.service';
+import { ExpenseSourcesService } from '@/api/expense-sources/expense-sources.service';
 import { IncomeSourcesService } from '@/api/income-sources/income-sources.service';
-import { MonthlyExpensesService } from '@/api/monthly-expenses/monthly-expenses.service';
 import { SavedFundsService } from '@/api/saved-funds/saved-funds.service';
 import { RequestContext } from '@/shared/types';
 
@@ -19,7 +19,7 @@ export class CalculationsService {
     private readonly currenciesService: CurrenciesService,
     private readonly incomeSourcesService: IncomeSourcesService,
     private readonly savedFundsService: SavedFundsService,
-    private readonly monthlyExpensesService: MonthlyExpensesService,
+    private readonly expenseSourcesService: ExpenseSourcesService,
     private readonly accumulationFundsService: AccumulationFundsService,
   ) {}
 
@@ -28,17 +28,19 @@ export class CalculationsService {
 
     const savedFunds = await this.savedFundsService.findAll(req);
 
-    const balance = await savedFunds.reduce(async (acc, savedFund) => {
+    let amount = 0;
+
+    for (const savedFund of savedFunds) {
       if (savedFund.currency.code === currency) {
-        return (await acc) + savedFund.amount;
+        amount += savedFund.amount;
       } else {
-        const currencyExchangeRate = await this.currenciesService.getCurrencyRate(currency, savedFund.currency.code);
-        return (await acc) + savedFund.amount / currencyExchangeRate;
+        const currencyExchangeRate = await this.currenciesService.getExchangeRate(currency, savedFund.currency.code);
+        amount += savedFund.amount / currencyExchangeRate;
       }
-    }, Promise.resolve(0));
+    }
 
     return {
-      amount: balance,
+      amount,
       currency,
     };
   }
@@ -48,17 +50,19 @@ export class CalculationsService {
 
     const incomeSources = await this.incomeSourcesService.findAll(req);
 
-    const incomeSourcesAmount = await incomeSources.reduce(async (acc, incomeSource) => {
+    let amount = 0;
+
+    for (const incomeSource of incomeSources) {
       if (incomeSource.currency.code === currency) {
-        return (await acc) + incomeSource.amount;
+        amount += incomeSource.amount;
       } else {
-        const currencyExchangeRate = await this.currenciesService.getCurrencyRate(currency, incomeSource.currency.code);
-        return (await acc) + incomeSource.amount / currencyExchangeRate;
+        const currencyExchangeRate = await this.currenciesService.getExchangeRate(currency, incomeSource.currency.code);
+        amount += incomeSource.amount / currencyExchangeRate;
       }
-    }, Promise.resolve(0));
+    }
 
     return {
-      amount: incomeSourcesAmount,
+      amount,
       currency,
     };
   }
@@ -66,24 +70,24 @@ export class CalculationsService {
   public async getTotalExpenses(req: RequestContext, currency: string): Promise<TotalExpensesDto> {
     if (!(await this.currenciesService.validateCurrency(currency))) return;
 
-    const monthlyExpenses = await this.monthlyExpensesService.findAll(req);
+    const expenseSources = await this.expenseSourcesService.findAll(req);
 
-    if (!monthlyExpenses.length) throw new NotFoundException('Monthly expenses not found');
+    let amount = 0;
 
-    const monthlyExpensesAmount = await monthlyExpenses.reduce(async (acc, monthlyExpense) => {
-      if (monthlyExpense.currency.code === currency) {
-        return (await acc) + monthlyExpense.amount;
+    for (const expenseSource of expenseSources) {
+      if (expenseSource.currency.code === currency) {
+        amount += expenseSource.amount;
       } else {
-        const currencyExchangeRate = await this.currenciesService.getCurrencyRate(
+        const currencyExchangeRate = await this.currenciesService.getExchangeRate(
           currency,
-          monthlyExpense.currency.code,
+          expenseSource.currency.code,
         );
-        return (await acc) + monthlyExpense.amount / currencyExchangeRate;
+        amount += expenseSource.amount / currencyExchangeRate;
       }
-    }, Promise.resolve(0));
+    }
 
     return {
-      amount: monthlyExpensesAmount,
+      amount,
       currency,
     };
   }

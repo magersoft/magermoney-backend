@@ -19,7 +19,7 @@ export class IncomeSourcesService {
     const { currency, ...incomeSourceDto } = createIncomeSourceDto;
     const { id: currencyId } = await this.currenciesService.findOne(currency);
 
-    return await this.prisma.incomeSource.create({
+    return await this.prisma.incomeSources.create({
       data: { ...incomeSourceDto, userId, currencyId },
       include: { currency: true },
     });
@@ -28,7 +28,7 @@ export class IncomeSourcesService {
   public async findAll(req: RequestContext) {
     const { id: userId } = req.user;
 
-    return await this.prisma.incomeSource.findMany({
+    return await this.prisma.incomeSources.findMany({
       where: {
         userId,
       },
@@ -39,7 +39,7 @@ export class IncomeSourcesService {
   public async findOne(req: RequestContext, id: number) {
     const { id: userId } = req.user;
 
-    const incomeSource = await this.prisma.incomeSource.findUniqueOrThrow({
+    const incomeSource = await this.prisma.incomeSources.findUniqueOrThrow({
       where: { id },
       include: { currency: true },
     });
@@ -56,7 +56,7 @@ export class IncomeSourcesService {
     const { currency, ...incomeSourceDto } = updateIncomeSourceDto;
     const { id: currencyId } = await this.currenciesService.findOne(currency);
 
-    return await this.prisma.incomeSource.update({
+    return await this.prisma.incomeSources.update({
       where: {
         id: incomeSource.id,
         userId,
@@ -70,7 +70,7 @@ export class IncomeSourcesService {
     const { id: userId } = req.user;
     const incomeSource = await this.findOne(req, id);
 
-    return await this.prisma.incomeSource.delete({
+    return await this.prisma.incomeSources.delete({
       where: { id: incomeSource.id, userId },
       include: { currency: true },
     });

@@ -4,23 +4,23 @@ import { PrismaService } from 'nestjs-prisma';
 import { CurrenciesService } from '@/api/currencies/currencies.service';
 import { RequestContext } from '@/shared/types';
 
-import { CreateMonthlyExpenseDto } from './dto/create-monthly-expense.dto';
-import { UpdateMonthlyExpenseDto } from './dto/update-monthly-expense.dto';
+import { CreateExpenseSourceDto } from './dto/create-expense-source.dto';
+import { UpdateExpenseSourceDto } from './dto/update-expense-source.dto';
 
 @Injectable()
-export class MonthlyExpensesService {
+export class ExpenseSourcesService {
   constructor(
     private readonly prisma: PrismaService,
     private readonly currenciesService: CurrenciesService,
   ) {}
 
-  public async create(req: RequestContext, createMonthlyExpenseDto: CreateMonthlyExpenseDto) {
+  public async create(req: RequestContext, createExpenseSourceDto: CreateExpenseSourceDto) {
     const { id: userId } = req.user;
-    const { currency, ...monthlyExpenseDto } = createMonthlyExpenseDto;
+    const { currency, ...expenseSourceDto } = createExpenseSourceDto;
     const { id: currencyId } = await this.currenciesService.findOne(currency);
 
-    return await this.prisma.monthlyExpense.create({
-      data: { ...monthlyExpenseDto, userId, currencyId },
+    return await this.prisma.expenseSources.create({
+      data: { ...expenseSourceDto, userId, currencyId },
       include: { currency: true },
     });
   }
@@ -28,7 +28,7 @@ export class MonthlyExpensesService {
   public async findAll(req: RequestContext) {
     const { id: userId } = req.user;
 
-    return await this.prisma.monthlyExpense.findMany({
+    return await this.prisma.expenseSources.findMany({
       where: {
         userId,
       },
@@ -39,39 +39,39 @@ export class MonthlyExpensesService {
   public async findOne(req: RequestContext, id: number) {
     const { id: userId } = req.user;
 
-    const monthlyExpense = await this.prisma.monthlyExpense.findUniqueOrThrow({
+    const expenseSource = await this.prisma.expenseSources.findUniqueOrThrow({
       where: { id },
       include: { currency: true },
     });
 
-    if (monthlyExpense.userId !== userId) throw new ForbiddenException();
+    if (expenseSource.userId !== userId) throw new ForbiddenException();
 
-    return monthlyExpense;
+    return expenseSource;
   }
 
-  public async update(req: RequestContext, id: number, updateMonthlyExpenseDto: UpdateMonthlyExpenseDto) {
+  public async update(req: RequestContext, id: number, updateExpenseSourceDto: UpdateExpenseSourceDto) {
     const { id: userId } = req.user;
-    const monthlyExpense = await this.findOne(req, id);
+    const expenseSource = await this.findOne(req, id);
 
-    const { currency, ...monthlyExpenseDto } = updateMonthlyExpenseDto;
+    const { currency, ...expenseSourceDto } = updateExpenseSourceDto;
     const { id: currencyId } = await this.currenciesService.findOne(currency);
 
-    return await this.prisma.monthlyExpense.update({
+    return await this.prisma.expenseSources.update({
       where: {
-        id: monthlyExpense.id,
+        id: expenseSource.id,
         userId,
       },
-      data: { ...monthlyExpenseDto, currencyId },
+      data: { ...expenseSourceDto, currencyId },
       include: { currency: true },
     });
   }
 
   public async remove(req: RequestContext, id: number) {
     const { id: userId } = req.user;
-    const monthlyExpense = await this.findOne(req, id);
+    const expenseSource = await this.findOne(req, id);
 
-    return await this.prisma.monthlyExpense.delete({
-      where: { id: monthlyExpense.id, userId },
+    return await this.prisma.expenseSources.delete({
+      where: { id: expenseSource.id, userId },
       include: { currency: true },
     });
   }

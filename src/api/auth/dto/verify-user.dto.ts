@@ -9,4 +9,7 @@ export class VerifyUserDto {
 
   @ApiProperty()
   public readonly phone: string;
+
+  @ApiProperty()
+  public readonly isFirstTime: boolean;
 }
