@@ -1,5 +1,5 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { IsDefined, IsNotEmpty, IsNumber, IsPositive, IsString, MaxLength } from 'class-validator';
+import { IsCurrency, IsDefined, IsNotEmpty, IsNumber, IsPositive, IsString, MaxLength } from 'class-validator';
 
 export class CreateExpenseSourceDto {
   @ApiProperty()
@@ -18,6 +18,7 @@ export class CreateExpenseSourceDto {
   @ApiProperty()
   @IsString()
   @IsDefined()
+  @IsCurrency()
   @MaxLength(3)
   public readonly currency: string;
 }

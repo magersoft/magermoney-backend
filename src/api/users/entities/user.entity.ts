@@ -20,4 +20,7 @@ export class UserEntity extends BaseEntity {
 
   @ApiProperty()
   public language: string;
+
+  @ApiProperty()
+  public currency: string;
 }
