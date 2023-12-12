@@ -5,8 +5,8 @@ import { AmountByPercentDto } from '@/api/calculations/dto/amount-by-percent.dto
 import { MonthlyBudgetDto } from '@/api/calculations/dto/monthly-budget.dto';
 import { PercentByAmountDto } from '@/api/calculations/dto/percent-by-amount.dto';
 import { TotalBalanceDto } from '@/api/calculations/dto/total-balance.dto';
-import { TotalExpensesDto } from '@/api/calculations/dto/total-expenses.dto';
-import { TotalIncomesDto } from '@/api/calculations/dto/total-incomes.dto';
+import { TotalMonthlyExpensesDto } from '@/api/calculations/dto/total-monthly-expenses.dto';
+import { TotalMonthlyIncomesDto } from '@/api/calculations/dto/total-monthly-incomes.dto';
 import { RequestContext } from '@/shared/types';
 
 import { CalculationsService } from './calculations.service';
@@ -23,16 +23,22 @@ export class CalculationsController {
     return this.calculationsService.getTotalBalance(req, currency);
   }
 
-  @Get('total-incomes')
-  @ApiOkResponse({ type: TotalIncomesDto })
-  getTotalIncomes(@Request() req: RequestContext, @Query('currency') currency: string): Promise<TotalIncomesDto> {
-    return this.calculationsService.getTotalIncomes(req, currency);
+  @Get('total-monthly-incomes')
+  @ApiOkResponse({ type: TotalMonthlyIncomesDto })
+  getTotalMonthlyIncomes(
+    @Request() req: RequestContext,
+    @Query('currency') currency: string,
+  ): Promise<TotalMonthlyIncomesDto> {
+    return this.calculationsService.getTotalMonthlyIncomes(req, currency);
   }
 
-  @Get('total-expenses')
-  @ApiOkResponse({ type: TotalExpensesDto })
-  getTotalExpenses(@Request() req: RequestContext, @Query('currency') currency: string): Promise<TotalExpensesDto> {
-    return this.calculationsService.getTotalExpenses(req, currency);
+  @Get('total-monthly-expenses')
+  @ApiOkResponse({ type: TotalMonthlyExpensesDto })
+  getTotalMonthlyExpenses(
+    @Request() req: RequestContext,
+    @Query('currency') currency: string,
+  ): Promise<TotalMonthlyExpensesDto> {
+    return this.calculationsService.getTotalMonthlyExpenses(req, currency);
   }
 
   @Get('monthly-budget')

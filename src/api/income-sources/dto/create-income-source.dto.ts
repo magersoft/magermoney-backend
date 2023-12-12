@@ -1,7 +1,7 @@
 import { ApiProperty } from '@nestjs/swagger';
 import {
-  IsCurrency,
   IsDefined,
+  IsISO4217CurrencyCode,
   IsNotEmpty,
   IsNumber,
   IsOptional,
@@ -31,7 +31,7 @@ export class CreateIncomeSourceDto {
   @ApiProperty()
   @IsString()
   @IsDefined()
-  @IsCurrency()
+  @IsISO4217CurrencyCode()
   @MaxLength(3)
   public readonly currency: string;
 }

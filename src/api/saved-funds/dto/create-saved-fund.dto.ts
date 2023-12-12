@@ -1,5 +1,13 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { IsCurrency, IsDefined, IsNotEmpty, IsNumber, IsPositive, IsString, MaxLength } from 'class-validator';
+import {
+  IsDefined,
+  IsISO4217CurrencyCode,
+  IsNotEmpty,
+  IsNumber,
+  IsPositive,
+  IsString,
+  MaxLength,
+} from 'class-validator';
 
 export class CreateSavedFundDto {
   @ApiProperty()
@@ -18,7 +26,7 @@ export class CreateSavedFundDto {
   @ApiProperty()
   @IsString()
   @IsDefined()
-  @IsCurrency()
+  @IsISO4217CurrencyCode()
   @MaxLength(3)
   public readonly currency: string;
 }

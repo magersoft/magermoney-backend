@@ -1,5 +1,14 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { IsBoolean, IsCurrency, IsDate, IsNotEmpty, IsNumber, IsPositive, IsString, MaxLength } from 'class-validator';
+import {
+  IsBoolean,
+  IsDate,
+  IsISO4217CurrencyCode,
+  IsNotEmpty,
+  IsNumber,
+  IsPositive,
+  IsString,
+  MaxLength,
+} from 'class-validator';
 
 export class CreateIncomeDto {
   @ApiProperty({ required: false })
@@ -15,7 +24,7 @@ export class CreateIncomeDto {
 
   @ApiProperty({ required: false })
   @IsString()
-  @IsCurrency()
+  @IsISO4217CurrencyCode()
   @MaxLength(3)
   public readonly currency: string;
 
@@ -27,7 +36,7 @@ export class CreateIncomeDto {
   @IsBoolean()
   public readonly distributed?: boolean;
 
-  @ApiProperty()
+  @ApiProperty({ required: false })
   @IsNumber()
-  public readonly incomeSourceId: number;
+  public readonly incomeSourceId?: number;
 }

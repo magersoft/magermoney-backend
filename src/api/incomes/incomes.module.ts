@@ -10,5 +10,6 @@ import { IncomesService } from './incomes.service';
   imports: [IncomeSourcesModule, CurrenciesModule],
   controllers: [IncomesController],
   providers: [IncomesService],
+  exports: [IncomesService],
 })
 export class IncomesModule {}

@@ -52,6 +52,21 @@ export class IncomesService {
     });
   }
 
+  public async findAllByCurrentMonth(req: RequestContext) {
+    const { id: userId } = req.user;
+
+    return await this.prisma.incomes.findMany({
+      where: {
+        userId,
+        dateOfIssue: {
+          gte: new Date(new Date().getFullYear(), new Date().getMonth(), 1),
+          lt: new Date(new Date().getFullYear(), new Date().getMonth() + 1, 1),
+        },
+      },
+      include: { currency: true },
+    });
+  }
+
   public async findOne(req: RequestContext, id: number) {
     const { id: userId } = req.user;
 

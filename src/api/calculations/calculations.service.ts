@@ -1,15 +1,17 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 
 import { AccumulationFundsService } from '@/api/accumulation-funds/accumulation-funds.service';
 import { AmountByPercentDto } from '@/api/calculations/dto/amount-by-percent.dto';
 import { MonthlyBudgetDto } from '@/api/calculations/dto/monthly-budget.dto';
 import { PercentByAmountDto } from '@/api/calculations/dto/percent-by-amount.dto';
 import { TotalBalanceDto } from '@/api/calculations/dto/total-balance.dto';
-import { TotalExpensesDto } from '@/api/calculations/dto/total-expenses.dto';
 import { TotalIncomesDto } from '@/api/calculations/dto/total-incomes.dto';
+import { TotalMonthlyExpensesDto } from '@/api/calculations/dto/total-monthly-expenses.dto';
+import { TotalMonthlyIncomesDto } from '@/api/calculations/dto/total-monthly-incomes.dto';
 import { CurrenciesService } from '@/api/currencies/currencies.service';
 import { ExpenseSourcesService } from '@/api/expense-sources/expense-sources.service';
 import { IncomeSourcesService } from '@/api/income-sources/income-sources.service';
+import { IncomesService } from '@/api/incomes/incomes.service';
 import { SavedFundsService } from '@/api/saved-funds/saved-funds.service';
 import { RequestContext } from '@/shared/types';
 
@@ -21,6 +23,7 @@ export class CalculationsService {
     private readonly savedFundsService: SavedFundsService,
     private readonly expenseSourcesService: ExpenseSourcesService,
     private readonly accumulationFundsService: AccumulationFundsService,
+    private readonly incomesService: IncomesService,
   ) {}
 
   public async getTotalBalance(req: RequestContext, currency: string): Promise<TotalBalanceDto> {
@@ -45,7 +48,7 @@ export class CalculationsService {
     };
   }
 
-  public async getTotalIncomes(req: RequestContext, currency: string): Promise<TotalIncomesDto> {
+  public async getTotalIncomeSources(req: RequestContext, currency: string): Promise<TotalIncomesDto> {
     if (!(await this.currenciesService.validateCurrency(currency))) return;
 
     const incomeSources = await this.incomeSourcesService.findAll(req);
@@ -67,7 +70,29 @@ export class CalculationsService {
     };
   }
 
-  public async getTotalExpenses(req: RequestContext, currency: string): Promise<TotalExpensesDto> {
+  public async getTotalMonthlyIncomes(req: RequestContext, currency: string): Promise<TotalMonthlyIncomesDto> {
+    if (!(await this.currenciesService.validateCurrency(currency))) return;
+
+    const incomes = await this.incomesService.findAllByCurrentMonth(req);
+
+    let amount = 0;
+
+    for (const income of incomes) {
+      if (income.currency.code === currency) {
+        amount += income.amount;
+      } else {
+        const currencyExchangeRate = await this.currenciesService.getExchangeRate(currency, income.currency.code);
+        amount += income.amount / currencyExchangeRate;
+      }
+    }
+
+    return {
+      amount,
+      currency,
+    };
+  }
+
+  public async getTotalMonthlyExpenses(req: RequestContext, currency: string): Promise<TotalMonthlyExpensesDto> {
     if (!(await this.currenciesService.validateCurrency(currency))) return;
 
     const expenseSources = await this.expenseSourcesService.findAll(req);
@@ -93,8 +118,8 @@ export class CalculationsService {
   }
 
   public async getMonthlyBudget(req: RequestContext, currency: string): Promise<MonthlyBudgetDto> {
-    const { amount: totalExpensesAmount } = await this.getTotalExpenses(req, currency);
-    const { amount: totalIncomesAmount } = await this.getTotalIncomes(req, currency);
+    const { amount: totalExpensesAmount } = await this.getTotalMonthlyExpenses(req, currency);
+    const { amount: totalIncomesAmount } = await this.getTotalMonthlyIncomes(req, currency);
 
     const accumulationFunds = await this.accumulationFundsService.findAll(req);
 
@@ -116,7 +141,7 @@ export class CalculationsService {
   }
 
   public async getPercentByAmount(req: RequestContext, amount: number, currency: string): Promise<PercentByAmountDto> {
-    const { amount: incomeSourcesAmount } = await this.getTotalIncomes(req, currency);
+    const { amount: incomeSourcesAmount } = await this.getTotalIncomeSources(req, currency);
 
     return {
       percent: (amount / incomeSourcesAmount) * 100,
@@ -127,7 +152,7 @@ export class CalculationsService {
   }
 
   public async getAmountByPercent(req: RequestContext, percent: number, currency: string): Promise<AmountByPercentDto> {
-    const { amount: incomeSourcesAmount } = await this.getTotalIncomes(req, currency);
+    const { amount: incomeSourcesAmount } = await this.getTotalIncomeSources(req, currency);
 
     const amount = (incomeSourcesAmount / 100) * percent;
 
