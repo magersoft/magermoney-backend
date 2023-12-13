@@ -34,6 +34,9 @@ export class SavedFundsService {
         userId,
       },
       include: { currency: true },
+      orderBy: {
+        createdAt: 'asc',
+      },
     });
   }
 

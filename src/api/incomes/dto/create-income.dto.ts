@@ -1,7 +1,7 @@
 import { ApiProperty } from '@nestjs/swagger';
 import {
-  IsBoolean,
   IsDate,
+  IsDefined,
   IsISO4217CurrencyCode,
   IsNotEmpty,
   IsNumber,
@@ -30,13 +30,15 @@ export class CreateIncomeDto {
 
   @ApiProperty()
   @IsDate()
+  @IsDefined()
   public readonly dateOfIssue: Date;
-
-  @ApiProperty({ required: false })
-  @IsBoolean()
-  public readonly distributed?: boolean;
 
   @ApiProperty({ required: false })
   @IsNumber()
   public readonly incomeSourceId?: number;
+
+  @ApiProperty({ required: false })
+  @IsNumber()
+  @IsDefined()
+  public readonly savedFundId?: number;
 }

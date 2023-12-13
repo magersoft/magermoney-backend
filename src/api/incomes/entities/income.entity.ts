@@ -10,13 +10,16 @@ export class IncomeEntity extends BaseEntity {
   public amount: number;
 
   @ApiProperty()
-  public distributed: boolean;
-
-  @ApiProperty()
   public dateOfIssue: Date;
 
   @ApiProperty()
   public currencyId: number;
+
+  @ApiProperty()
+  public savedFundId: number;
+
+  @ApiProperty({ required: false })
+  public incomeSourceId?: number;
 
   @ApiProperty()
   public userId: number;

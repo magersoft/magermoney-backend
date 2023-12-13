@@ -3,6 +3,7 @@ import { PrismaService } from 'nestjs-prisma';
 
 import { CurrenciesService } from '@/api/currencies/currencies.service';
 import { IncomeSourcesService } from '@/api/income-sources/income-sources.service';
+import { SavedFundsService } from '@/api/saved-funds/saved-funds.service';
 import { RequestContext } from '@/shared/types';
 
 import { CreateIncomeDto } from './dto/create-income.dto';
@@ -14,31 +15,68 @@ export class IncomesService {
     private readonly prisma: PrismaService,
     private readonly currenciesService: CurrenciesService,
     private readonly incomeSourcesService: IncomeSourcesService,
+    private readonly savedFundsService: SavedFundsService,
   ) {}
 
   public async create(req: RequestContext, createIncomeDto: CreateIncomeDto) {
     const { id: userId } = req.user;
-    const { incomeSourceId, currency, ...incomeDto } = createIncomeDto;
+    const { incomeSourceId, savedFundId, currency, ...incomeDto } = createIncomeDto;
+    const isSingleIncome = !incomeSourceId;
 
-    const { id: currencyId } = await this.currenciesService.findOne(currency);
+    const { id: currencyId, code: currencyCode } = await this.currenciesService.findOne(currency);
+    const savedFund = await this.savedFundsService.findOne(req, savedFundId);
 
-    if (!incomeSourceId) {
-      return await this.prisma.incomes.create({
-        data: { ...incomeDto, userId, currencyId },
+    if (isSingleIncome) {
+      const amount = await this.currenciesService.additionOfCurrencyAmounts(
+        savedFund.amount,
+        incomeDto.amount,
+        currencyCode,
+        savedFund.currency.code,
+      );
+
+      const updateSaveFund = this.prisma.savedFunds.update({
+        where: { id: savedFund.id, userId },
+        data: { amount },
       });
+
+      const createIncome = this.prisma.incomes.create({
+        data: { ...incomeDto, userId, currencyId, savedFundId: savedFund.id },
+      });
+
+      const [createdIncome] = await this.prisma.$transaction([createIncome, updateSaveFund]);
+
+      return createdIncome;
     }
 
     const incomeSource = await this.incomeSourcesService.findOne(req, incomeSourceId);
 
-    return await this.prisma.incomes.create({
+    const amount = await this.currenciesService.additionOfCurrencyAmounts(
+      savedFund.amount,
+      incomeDto.amount,
+      incomeSource.currency.code,
+      savedFund.currency.code,
+    );
+
+    const updateSaveFund = this.prisma.savedFunds.update({
+      where: { id: savedFund.id, userId },
+      data: { amount },
+    });
+
+    const createIncome = this.prisma.incomes.create({
       data: {
         title: incomeSource.title,
         amount: incomeSource.amount,
         currencyId: incomeSource.currencyId,
         userId: incomeSource.userId,
+        savedFundId: savedFund.id,
+        incomeSourceId: incomeSource.id,
         dateOfIssue: incomeDto.dateOfIssue,
       },
     });
+
+    const [createdIncome] = await this.prisma.$transaction([createIncome, updateSaveFund]);
+
+    return createdIncome;
   }
 
   public async findAll(req: RequestContext) {
