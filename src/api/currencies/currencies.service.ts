@@ -95,6 +95,14 @@ export class CurrenciesService {
     return a + b / currencyExchangeRate;
   }
 
+  public async subtractionOfCurrencyAmounts(a: number, b: number, fromCurrency: string, toCurrency: string) {
+    if (fromCurrency === toCurrency) return a - b;
+
+    const currencyExchangeRate = await this.getExchangeRate(toCurrency, fromCurrency);
+
+    return a - b / currencyExchangeRate;
+  }
+
   public async validateCurrency(currency: string) {
     const currencies = await this.findAll();
     const currencyExists = currencies.find((c) => c.code === currency);

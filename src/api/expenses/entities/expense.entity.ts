@@ -1,0 +1,26 @@
+import { ApiProperty } from '@nestjs/swagger';
+
+import { BaseEntity } from '@/shared/entities/base.entity';
+
+export class ExpenseEntity extends BaseEntity {
+  @ApiProperty()
+  public title: string;
+
+  @ApiProperty()
+  public amount: number;
+
+  @ApiProperty()
+  public dateOfIssue: Date;
+
+  @ApiProperty()
+  public currencyId: number;
+
+  @ApiProperty()
+  public savedFundId: number;
+
+  @ApiProperty()
+  public expenseSourceId: number;
+
+  @ApiProperty()
+  public userId: number;
+}

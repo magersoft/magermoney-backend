@@ -5,6 +5,7 @@ import { AuthModule } from './auth/auth.module';
 import { CalculationsModule } from './calculations/calculations.module';
 import { CurrenciesModule } from './currencies/currencies.module';
 import { ExpenseSourcesModule } from './expense-sources/expense-sources.module';
+import { ExpensesModule } from './expenses/expenses.module';
 import { IncomeSourcesModule } from './income-sources/income-sources.module';
 import { IncomesModule } from './incomes/incomes.module';
 import { SavedFundsModule } from './saved-funds/saved-funds.module';
@@ -21,6 +22,7 @@ import { UsersModule } from './users/users.module';
     CalculationsModule,
     ExpenseSourcesModule,
     IncomesModule,
+    ExpensesModule,
   ],
   exports: [
     AuthModule,
@@ -32,6 +34,7 @@ import { UsersModule } from './users/users.module';
     CalculationsModule,
     ExpenseSourcesModule,
     IncomesModule,
+    ExpensesModule,
   ],
 })
 export class ApiModule {}
