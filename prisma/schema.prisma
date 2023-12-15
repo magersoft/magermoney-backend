@@ -72,10 +72,10 @@ model Incomes {
   amount      Float    @db.DoublePrecision
   dateOfIssue DateTime @default(now())
 
-  savedFund   SavedFunds @relation(fields: [savedFundId], references: [id])
+  savedFund   SavedFunds @relation(fields: [savedFundId], references: [id], onDelete: Cascade)
   savedFundId Int
 
-  incomeSource   IncomeSources? @relation(fields: [incomeSourceId], references: [id])
+  incomeSource   IncomeSources? @relation(fields: [incomeSourceId], references: [id], onDelete: SetNull)
   incomeSourceId Int?
 
   currency   Currencies @relation(fields: [currencyId], references: [id])
@@ -94,10 +94,10 @@ model Expenses {
   amount      Float    @db.DoublePrecision
   dateOfIssue DateTime @default(now())
 
-  savedFund   SavedFunds @relation(fields: [savedFundId], references: [id])
+  savedFund   SavedFunds @relation(fields: [savedFundId], references: [id], onDelete: Cascade)
   savedFundId Int
 
-  expenseSource   ExpenseSources? @relation(fields: [expenseSourceId], references: [id])
+  expenseSource   ExpenseSources? @relation(fields: [expenseSourceId], references: [id], onDelete: SetNull)
   expenseSourceId Int?
 
   currency   Currencies @relation(fields: [currencyId], references: [id])
@@ -114,6 +114,7 @@ model SavedFunds {
   id     Int    @id @default(autoincrement())
   source String @db.VarChar(100)
   amount Float  @db.DoublePrecision
+  order  Int    @default(autoincrement())
 
   currency   Currencies @relation(fields: [currencyId], references: [id])
   currencyId Int

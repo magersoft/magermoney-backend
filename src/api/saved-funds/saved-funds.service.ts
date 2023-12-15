@@ -2,6 +2,7 @@ import { ForbiddenException, Injectable } from '@nestjs/common';
 import { PrismaService } from 'nestjs-prisma';
 
 import { CurrenciesService } from '@/api/currencies/currencies.service';
+import { UpdateOrdersSavedFundsDto } from '@/api/saved-funds/dto/update-orders-saved-funds.dto';
 import { RequestContext } from '@/shared/types';
 
 import { CreateSavedFundDto } from './dto/create-saved-fund.dto';
@@ -34,9 +35,7 @@ export class SavedFundsService {
         userId,
       },
       include: { currency: true },
-      orderBy: {
-        createdAt: 'asc',
-      },
+      orderBy: [{ order: 'asc' }, { createdAt: 'asc' }],
     });
   }
 
@@ -56,18 +55,35 @@ export class SavedFundsService {
   public async update(req: RequestContext, id: number, updateSavedFundDto: UpdateSavedFundDto) {
     const { id: userId } = req.user;
     const savedFund = await this.findOne(req, id);
-    const { currency, ...savedFundDto } = updateSavedFundDto;
-
-    const { id: currencyId } = await this.currenciesService.findOne(currency);
 
     return await this.prisma.savedFunds.update({
       where: {
         id: savedFund.id,
         userId,
       },
-      data: { ...savedFundDto, currencyId },
+      data: { ...updateSavedFundDto },
       include: { currency: true },
     });
+  }
+
+  public async updateOrders(req: RequestContext, updateOrdersSavedFundsDto: UpdateOrdersSavedFundsDto) {
+    const { id: userId } = req.user;
+    const { ids } = updateOrdersSavedFundsDto;
+
+    for (let i = 0; i < ids.length; i++) {
+      const savedFund = await this.findOne(req, +ids[i]);
+
+      await this.prisma.savedFunds.update({
+        where: {
+          id: savedFund.id,
+          userId,
+        },
+        data: { order: i },
+        include: { currency: true },
+      });
+    }
+
+    return await this.findAll(req);
   }
 
   public async remove(req: RequestContext, id: number) {

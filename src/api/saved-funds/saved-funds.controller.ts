@@ -1,6 +1,7 @@
 import { Body, Controller, Delete, Get, Param, Patch, Post, Request } from '@nestjs/common';
 import { ApiBearerAuth, ApiCreatedResponse, ApiOkResponse, ApiTags } from '@nestjs/swagger';
 
+import { UpdateOrdersSavedFundsDto } from '@/api/saved-funds/dto/update-orders-saved-funds.dto';
 import { SavedFundEntity } from '@/api/saved-funds/entities/saved-fund.entity';
 import { RequestContext } from '@/shared/types';
 
@@ -24,6 +25,12 @@ export class SavedFundsController {
   @ApiOkResponse({ type: SavedFundEntity, isArray: true })
   findAll(@Request() req: RequestContext) {
     return this.savedFundsService.findAll(req);
+  }
+
+  @Patch('/orders')
+  @ApiOkResponse({ type: SavedFundEntity, isArray: true })
+  updateOrders(@Request() req: RequestContext, @Body() updateOrdersSavedFundsDto: UpdateOrdersSavedFundsDto) {
+    return this.savedFundsService.updateOrders(req, updateOrdersSavedFundsDto);
   }
 
   @Get(':id')
