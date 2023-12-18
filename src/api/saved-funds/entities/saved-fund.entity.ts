@@ -20,5 +20,8 @@ export class SavedFundEntity extends BaseEntity {
   public userId: number;
 
   @ApiProperty()
+  public color: string;
+
+  @ApiProperty()
   public order: number;
 }

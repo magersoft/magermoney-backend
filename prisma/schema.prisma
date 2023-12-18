@@ -114,7 +114,8 @@ model SavedFunds {
   id     Int    @id @default(autoincrement())
   source String @db.VarChar(100)
   amount Float  @db.DoublePrecision
-  order  Int    @default(autoincrement())
+  order  Int    @default(-1)
+  color  String @default("#191919") @db.VarChar(7)
 
   currency   Currencies @relation(fields: [currencyId], references: [id])
   currencyId Int

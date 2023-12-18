@@ -1,0 +1,2 @@
+-- AlterTable
+ALTER TABLE "SavedFunds" ADD COLUMN     "color" VARCHAR(7) NOT NULL DEFAULT '#191919';
