@@ -1,7 +1,9 @@
-import { Body, Controller, Delete, Get, Param, Patch, Post, Request } from '@nestjs/common';
+import { Body, Controller, Delete, Get, Param, Patch, Post, Query, Request } from '@nestjs/common';
 import { ApiBearerAuth, ApiCreatedResponse, ApiOkResponse, ApiTags } from '@nestjs/swagger';
 
+import { QueryIncomesDto } from '@/api/incomes/dto/query-incomes.dto';
 import { IncomeEntity } from '@/api/incomes/entities/income.entity';
+import { ApiPaginatedResponse } from '@/shared/decorators/paginated.decorator';
 import { RequestContext } from '@/shared/types';
 
 import { CreateIncomeDto } from './dto/create-income.dto';
@@ -21,9 +23,9 @@ export class IncomesController {
   }
 
   @Get()
-  @ApiOkResponse({ type: IncomeEntity, isArray: true })
-  findAll(@Request() req: RequestContext) {
-    return this.incomesService.findAll(req);
+  @ApiPaginatedResponse(IncomeEntity)
+  findAll(@Request() req: RequestContext, @Query() query: QueryIncomesDto) {
+    return this.incomesService.findAll(req, query);
   }
 
   @Get(':id')

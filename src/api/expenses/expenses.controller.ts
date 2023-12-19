@@ -1,7 +1,9 @@
-import { Body, Controller, Delete, Get, Param, Patch, Post, Request } from '@nestjs/common';
+import { Body, Controller, Delete, Get, Param, Patch, Post, Query, Request } from '@nestjs/common';
 import { ApiBearerAuth, ApiCreatedResponse, ApiOkResponse, ApiTags } from '@nestjs/swagger';
 
+import { QueryExpensesDto } from '@/api/expenses/dto/query-expenses.dto';
 import { ExpenseEntity } from '@/api/expenses/entities/expense.entity';
+import { ApiPaginatedResponse } from '@/shared/decorators/paginated.decorator';
 import { RequestContext } from '@/shared/types';
 
 import { CreateExpenseDto } from './dto/create-expense.dto';
@@ -21,9 +23,9 @@ export class ExpensesController {
   }
 
   @Get()
-  @ApiOkResponse({ type: ExpenseEntity, isArray: true })
-  findAll(@Request() req: RequestContext) {
-    return this.expensesService.findAll(req);
+  @ApiPaginatedResponse(ExpenseEntity)
+  findAll(@Request() req: RequestContext, @Query() query: QueryExpensesDto) {
+    return this.expensesService.findAll(req, query);
   }
 
   @Get(':id')

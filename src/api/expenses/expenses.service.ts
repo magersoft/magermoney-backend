@@ -1,9 +1,13 @@
 import { BadRequestException, ForbiddenException, Injectable } from '@nestjs/common';
+import { Prisma } from '@prisma/client';
 import { PrismaService } from 'nestjs-prisma';
 
 import { CurrenciesService } from '@/api/currencies/currencies.service';
 import { ExpenseSourcesService } from '@/api/expense-sources/expense-sources.service';
+import { QueryExpensesDto } from '@/api/expenses/dto/query-expenses.dto';
+import { ExpenseEntity } from '@/api/expenses/entities/expense.entity';
 import { SavedFundsService } from '@/api/saved-funds/saved-funds.service';
+import { usePaginator } from '@/shared/features';
 import { RequestContext } from '@/shared/types';
 
 import { CreateExpenseDto } from './dto/create-expense.dto';
@@ -81,13 +85,27 @@ export class ExpensesService {
     return createdExpense;
   }
 
-  public async findAll(req: RequestContext) {
+  public async findAll(req: RequestContext, query: QueryExpensesDto) {
     const { id: userId } = req.user;
+    const { perPage, page, startDate, endDate } = query;
 
-    return await this.prisma.expenses.findMany({
-      where: { userId },
-      include: { currency: true },
-    });
+    const { paginate } = usePaginator({ perPage, page });
+
+    return await paginate<ExpenseEntity, Prisma.ExpensesFindManyArgs>(
+      this.prisma.expenses,
+      {
+        where: {
+          userId,
+          dateOfIssue: {
+            gte: startDate,
+            lt: endDate,
+          },
+        },
+        orderBy: { dateOfIssue: 'desc' },
+        include: { currency: true },
+      },
+      { page },
+    );
   }
 
   public async findAllByPeriod(req: RequestContext, startDate: Date, endDate: Date) {
@@ -135,13 +153,29 @@ export class ExpensesService {
   public async remove(req: RequestContext, id: number) {
     const { id: userId } = req.user;
     const expense = await this.findOne(req, id);
+    const savedFund = await this.savedFundsService.findOne(req, expense.savedFundId);
 
-    return await this.prisma.expenses.delete({
+    const amount = await this.currenciesService.additionOfCurrencyAmounts(
+      savedFund.amount,
+      expense.amount,
+      expense.currency.code,
+      savedFund.currency.code,
+    );
+
+    const updateSaveFund = this.prisma.savedFunds.update({
+      where: { id: savedFund.id, userId },
+      data: { amount },
+    });
+
+    const removeExpense = this.prisma.expenses.delete({
       where: {
         id: expense.id,
         userId,
       },
-      include: { currency: true },
     });
+
+    const [removedExpense] = await this.prisma.$transaction([removeExpense, updateSaveFund]);
+
+    return removedExpense;
   }
 }

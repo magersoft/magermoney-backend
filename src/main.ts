@@ -5,6 +5,8 @@ import { NestExpressApplication } from '@nestjs/platform-express';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 import { PrismaClientExceptionFilter } from 'nestjs-prisma';
 
+import { TransformInterceptor } from '@/shared/interceptors/transform.interceptor';
+
 import { certificateConfig } from '../secrets/certificates';
 import { AppModule } from './app.module';
 
@@ -19,6 +21,7 @@ async function bootstrap() {
   app.enableCors();
   app.setGlobalPrefix(apiGlobalPrefix);
   app.useGlobalFilters(new PrismaClientExceptionFilter(httpAdapter));
+  app.useGlobalInterceptors(new TransformInterceptor());
   app.useGlobalPipes(
     new ValidationPipe({
       transform: true,
