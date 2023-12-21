@@ -1,8 +1,10 @@
 import { Injectable, Logger, UnauthorizedException } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { JwtService } from '@nestjs/jwt';
+import { PrismaService } from 'nestjs-prisma';
 
-import { DetectUserDto } from '@/api/auth/dto/detect-user.dto';
+import { DetectUserEntity } from '@/api/auth/entities/detect-user.entity';
+import { VerifyUserEntity } from '@/api/auth/entities/verify-user.entity';
 import { generateAuthCode } from '@/api/auth/utils';
 import { UserEntity } from '@/api/users/entities/user.entity';
 import { UsersService } from '@/api/users/users.service';
@@ -18,6 +20,7 @@ export class AuthService {
   private isDev: boolean = false;
 
   constructor(
+    private readonly prisma: PrismaService,
     private readonly usersService: UsersService,
     private readonly jwtService: JwtService,
     private readonly notifier: NotifierService,
@@ -26,7 +29,7 @@ export class AuthService {
     this.isDev = this.configService.get<boolean>('isDev');
   }
 
-  public async detectUser(data: LoginAuthDto): Promise<DetectUserDto> {
+  public async detectUser(data: LoginAuthDto): Promise<DetectUserEntity> {
     const { email, phone } = data;
 
     let user = await this.usersService.findOneByEmailOrPhone(email, phone);
@@ -38,7 +41,7 @@ export class AuthService {
     if (!user.authCode) {
       const authCode = generateAuthCode();
 
-      user = await this.usersService.update(user.id, { authCode });
+      user = await this.prisma.users.update({ where: { id: user.id }, data: { authCode } });
 
       if (this.isDev) {
         this.logger.debug(`Auth code: ${authCode}`);
@@ -55,16 +58,16 @@ export class AuthService {
     return { id: user.id };
   }
 
-  public async verifyCode(data: VerifyAuthDto) {
+  public async verifyCode(data: VerifyAuthDto): Promise<VerifyUserEntity> {
     const { userId, authCode, language, darkMode } = data;
 
-    let user = await this.usersService.findOne(userId);
+    let user = await this.prisma.users.findUniqueOrThrow({ where: { id: userId } });
 
     if (authCode !== user.authCode) {
       throw new UnauthorizedException('Wrong auth code');
     }
 
-    user = await this.usersService.update(user.id, { authCode: null, language, darkMode });
+    user = await this.prisma.users.update({ where: { id: user.id }, data: { authCode: null, language, darkMode } });
 
     return await this.login(user);
   }

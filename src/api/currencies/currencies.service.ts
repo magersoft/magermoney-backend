@@ -48,6 +48,8 @@ export class CurrenciesService {
     const fromCurrency = await this.findOne(baseCurrency);
     const toCurrency = await this.findOne(targetCurrency);
 
+    if (fromCurrency.id === toCurrency.id) return 1;
+
     const exchangeRate = await this.prisma.exchangeRates.findFirst({
       where: {
         fromId: fromCurrency.id,

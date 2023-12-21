@@ -2,6 +2,8 @@ import { ApiProperty } from '@nestjs/swagger';
 
 import { BaseEntity } from '@/shared/entities/base.entity';
 
+import { $Enums } from '.prisma/client';
+
 export class UserEntity extends BaseEntity {
   @ApiProperty()
   public email: string;
@@ -23,4 +25,7 @@ export class UserEntity extends BaseEntity {
 
   @ApiProperty()
   public currency: string;
+
+  @ApiProperty({ default: $Enums.Role.USER, enum: $Enums.Role })
+  public role: $Enums.Role;
 }

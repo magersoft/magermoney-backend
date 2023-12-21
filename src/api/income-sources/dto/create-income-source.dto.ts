@@ -32,6 +32,5 @@ export class CreateIncomeSourceDto {
   @IsString()
   @IsDefined()
   @IsISO4217CurrencyCode()
-  @MaxLength(3)
   public readonly currency: string;
 }

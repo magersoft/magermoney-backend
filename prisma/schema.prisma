@@ -19,6 +19,7 @@ model Users {
   language    String  @default("ru-RU") @db.VarChar(10)
   currency    String  @default("RUB") @db.VarChar(3)
   isFirstTime Boolean @default(true)
+  role        Role    @default(USER)
 
   incomes           Incomes[]
   expenses          Expenses[]
@@ -26,6 +27,7 @@ model Users {
   expenseSources    ExpenseSources[]
   savedFunds        SavedFunds[]
   accumulationFunds AccumulationFunds[]
+  transfers         Transfers[]
   goals             Goals[]
 
   createdAt DateTime @default(now())
@@ -43,7 +45,7 @@ model IncomeSources {
   user   Users @relation(fields: [userId], references: [id], onDelete: Cascade)
   userId Int
 
-  Incomes Incomes[]
+  incomes Incomes[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -123,8 +125,10 @@ model SavedFunds {
   user   Users @relation(fields: [userId], references: [id], onDelete: Cascade)
   userId Int
 
-  Incomes  Incomes[]
-  Expenses Expenses[]
+  incomes       Incomes[]
+  expenses      Expenses[]
+  transfersTo   Transfers[] @relation(name: "TransferTo")
+  transfersFrom Transfers[] @relation(name: "TransferFrom")
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -151,6 +155,28 @@ model Goals {
   updatedAt DateTime @updatedAt
 }
 
+model Transfers {
+  id     Int   @id @default(autoincrement())
+  amount Float @db.DoublePrecision
+
+  to   SavedFunds @relation(name: "TransferTo", fields: [toId], references: [id], onDelete: Cascade)
+  toId Int
+
+  from   SavedFunds @relation(name: "TransferFrom", fields: [fromId], references: [id], onDelete: Cascade)
+  fromId Int
+
+  currency   Currencies @relation(fields: [currencyId], references: [id])
+  currencyId Int
+
+  user   Users @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId Int
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([toId, fromId])
+}
+
 model Currencies {
   id     Int    @id @default(autoincrement())
   code   String @unique @db.VarChar(3)
@@ -164,6 +190,7 @@ model Currencies {
   incomeSources     IncomeSources[]
   expenseSources    ExpenseSources[]
   savedFunds        SavedFunds[]
+  transfers         Transfers[]
 
   @@index([code])
 }
@@ -181,4 +208,9 @@ model ExchangeRates {
   updatedAt DateTime @updatedAt
 
   @@index([toId, fromId])
+}
+
+enum Role {
+  USER
+  ADMIN
 }

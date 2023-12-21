@@ -9,6 +9,7 @@ import { ExpensesModule } from './expenses/expenses.module';
 import { IncomeSourcesModule } from './income-sources/income-sources.module';
 import { IncomesModule } from './incomes/incomes.module';
 import { SavedFundsModule } from './saved-funds/saved-funds.module';
+import { TransfersModule } from './transfers/transfers.module';
 import { UsersModule } from './users/users.module';
 
 @Module({
@@ -23,6 +24,7 @@ import { UsersModule } from './users/users.module';
     ExpenseSourcesModule,
     IncomesModule,
     ExpensesModule,
+    TransfersModule,
   ],
   exports: [
     AuthModule,

@@ -11,21 +11,22 @@ import {
 } from 'class-validator';
 
 export class CreateExpenseDto {
-  @ApiProperty({ required: false })
+  @ApiProperty()
   @IsString()
   @IsNotEmpty()
   @MaxLength(100)
   public readonly title: string;
 
-  @ApiProperty({ required: false })
+  @ApiProperty()
   @IsNumber()
   @IsPositive()
+  @IsDefined()
   public readonly amount: number;
 
-  @ApiProperty({ required: false })
+  @ApiProperty()
   @IsString()
   @IsISO4217CurrencyCode()
-  @MaxLength(3)
+  @IsDefined()
   public readonly currency: string;
 
   @ApiProperty()

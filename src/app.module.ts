@@ -1,11 +1,9 @@
 import { Module } from '@nestjs/common';
 import { ConfigModule, ConfigService } from '@nestjs/config';
-import { APP_GUARD } from '@nestjs/core';
-import { ThrottlerGuard, ThrottlerModule } from '@nestjs/throttler';
+import { ThrottlerModule } from '@nestjs/throttler';
 import { PrismaModule } from 'nestjs-prisma';
 
 import { ApiModule } from '@/api/api.module';
-import { providePrismaClientExceptionFilter } from '@/shared/filters';
 import { SharedModule } from '@/shared/shared.module';
 
 import { AppController } from './app.controller';
@@ -30,17 +28,10 @@ import { appConfig, currenciesConfig, databaseConfig, smtpConfig, throttlerConfi
       ],
       inject: [ConfigService],
     }),
-    SharedModule,
     ApiModule,
+    SharedModule,
   ],
   controllers: [AppController],
-  providers: [
-    AppService,
-    providePrismaClientExceptionFilter(),
-    {
-      provide: APP_GUARD,
-      useClass: ThrottlerGuard,
-    },
-  ],
+  providers: [AppService],
 })
 export class AppModule {}

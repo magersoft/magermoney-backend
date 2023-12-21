@@ -131,7 +131,7 @@ export class ExpensesService {
       include: { currency: true },
     });
 
-    if (expense.userId !== userId) throw new ForbiddenException();
+    if (expense.userId !== userId) throw new ForbiddenException(`You don't have permission to access this resource`);
 
     return expense;
   }

@@ -1,14 +1,16 @@
-import { Injectable } from '@nestjs/common';
+import { BadRequestException, Injectable } from '@nestjs/common';
 
 import { AccumulationFundsService } from '@/api/accumulation-funds/accumulation-funds.service';
-import { AmountByPercentDto } from '@/api/calculations/dto/amount-by-percent.dto';
-import { MonthlyBudgetDto } from '@/api/calculations/dto/monthly-budget.dto';
-import { PercentByAmountDto } from '@/api/calculations/dto/percent-by-amount.dto';
-import { TotalBalanceDto } from '@/api/calculations/dto/total-balance.dto';
-import { TotalExpenseSourcesDto } from '@/api/calculations/dto/total-expense-sources.dto';
-import { TotalIncomeSourcesDto } from '@/api/calculations/dto/total-income-sources.dto';
-import { TotalMonthlyExpensesDto } from '@/api/calculations/dto/total-monthly-expenses.dto';
-import { TotalMonthlyIncomesDto } from '@/api/calculations/dto/total-monthly-incomes.dto';
+import { QueryTransferDetailsDto } from '@/api/calculations/dto/query-transfer-details.dto';
+import { AmountByPercentEntity } from '@/api/calculations/entities/amount-by-percent.entity';
+import { MonthlyBudgetEntity } from '@/api/calculations/entities/monthly-budget.entity';
+import { PercentByAmountEntity } from '@/api/calculations/entities/percent-by-amount.entity';
+import { TotalBalanceEntity } from '@/api/calculations/entities/total-balance.entity';
+import { TotalExpenseSourcesEntity } from '@/api/calculations/entities/total-expense-sources.entity';
+import { TotalIncomeSourcesEntity } from '@/api/calculations/entities/total-income-source.entity';
+import { TotalMonthlyExpensesEntity } from '@/api/calculations/entities/total-monthly-expenses.entity';
+import { TotalMonthlyIncomesEntity } from '@/api/calculations/entities/total-monthly-incomes.entity';
+import { TransferDetailsEntity } from '@/api/calculations/entities/transfer-details.entity';
 import { CurrenciesService } from '@/api/currencies/currencies.service';
 import { ExpenseSourcesService } from '@/api/expense-sources/expense-sources.service';
 import { ExpensesService } from '@/api/expenses/expenses.service';
@@ -30,7 +32,7 @@ export class CalculationsService {
     private readonly expensesService: ExpensesService,
   ) {}
 
-  public async getTotalBalance(req: RequestContext, currency: string): Promise<TotalBalanceDto> {
+  public async getTotalBalance(req: RequestContext, currency: string): Promise<TotalBalanceEntity> {
     if (!(await this.currenciesService.validateCurrency(currency))) return;
 
     const savedFunds = await this.savedFundsService.findAll(req);
@@ -52,7 +54,7 @@ export class CalculationsService {
     };
   }
 
-  public async getTotalIncomeSources(req: RequestContext, currency: string): Promise<TotalIncomeSourcesDto> {
+  public async getTotalIncomeSources(req: RequestContext, currency: string): Promise<TotalIncomeSourcesEntity> {
     if (!(await this.currenciesService.validateCurrency(currency))) return;
 
     const incomeSources = await this.incomeSourcesService.findAll(req);
@@ -74,7 +76,7 @@ export class CalculationsService {
     };
   }
 
-  public async getTotalExpenseSources(req: RequestContext, currency: string): Promise<TotalExpenseSourcesDto> {
+  public async getTotalExpenseSources(req: RequestContext, currency: string): Promise<TotalExpenseSourcesEntity> {
     if (!(await this.currenciesService.validateCurrency(currency))) return;
 
     const expenseSources = await this.expenseSourcesService.findAll(req);
@@ -99,7 +101,7 @@ export class CalculationsService {
     };
   }
 
-  public async getTotalMonthlyIncomes(req: RequestContext, currency: string): Promise<TotalMonthlyIncomesDto> {
+  public async getTotalMonthlyIncomes(req: RequestContext, currency: string): Promise<TotalMonthlyIncomesEntity> {
     if (!(await this.currenciesService.validateCurrency(currency))) return;
 
     const incomes = await this.incomesService.findAllByPeriod(req, BEGIN_MONTH, END_MONTH);
@@ -121,7 +123,7 @@ export class CalculationsService {
     };
   }
 
-  public async getTotalMonthlyExpenses(req: RequestContext, currency: string): Promise<TotalMonthlyExpensesDto> {
+  public async getTotalMonthlyExpenses(req: RequestContext, currency: string): Promise<TotalMonthlyExpensesEntity> {
     if (!(await this.currenciesService.validateCurrency(currency))) return;
 
     const expenses = await this.expensesService.findAllByPeriod(req, BEGIN_MONTH, END_MONTH);
@@ -143,7 +145,7 @@ export class CalculationsService {
     };
   }
 
-  public async getMonthlyBudget(req: RequestContext, currency: string): Promise<MonthlyBudgetDto> {
+  public async getMonthlyBudget(req: RequestContext, currency: string): Promise<MonthlyBudgetEntity> {
     const { amount: totalExpensesAmount } = await this.getTotalMonthlyExpenses(req, currency);
     const { amount: totalIncomesAmount } = await this.getTotalMonthlyIncomes(req, currency);
 
@@ -166,7 +168,11 @@ export class CalculationsService {
     };
   }
 
-  public async getPercentByAmount(req: RequestContext, amount: number, currency: string): Promise<PercentByAmountDto> {
+  public async getPercentByAmount(
+    req: RequestContext,
+    amount: number,
+    currency: string,
+  ): Promise<PercentByAmountEntity> {
     const { amount: incomeSourcesAmount } = await this.getTotalIncomeSources(req, currency);
 
     return {
@@ -177,7 +183,11 @@ export class CalculationsService {
     };
   }
 
-  public async getAmountByPercent(req: RequestContext, percent: number, currency: string): Promise<AmountByPercentDto> {
+  public async getAmountByPercent(
+    req: RequestContext,
+    percent: number,
+    currency: string,
+  ): Promise<AmountByPercentEntity> {
     const { amount: incomeSourcesAmount } = await this.getTotalIncomeSources(req, currency);
 
     const amount = (incomeSourcesAmount / 100) * percent;
@@ -187,6 +197,37 @@ export class CalculationsService {
       balance: incomeSourcesAmount - amount,
       percent,
       currency,
+    };
+  }
+
+  public async getTransferDetails(req: RequestContext, query: QueryTransferDetailsDto): Promise<TransferDetailsEntity> {
+    const { fromId, toId, amount, currency } = query;
+    const { code: currencyCode } = await this.currenciesService.findOne(currency);
+
+    const savedFundFrom = await this.savedFundsService.findOne(req, fromId);
+    const savedFundTo = await this.savedFundsService.findOne(req, toId);
+
+    const outcomeExchangeRate = await this.currenciesService.getExchangeRate(savedFundFrom.currency.code, currencyCode);
+    const outcomeAmount = amount / outcomeExchangeRate;
+
+    const incomeExchangeRate = await this.currenciesService.getExchangeRate(savedFundTo.currency.code, currencyCode);
+    const incomeAmount = amount / incomeExchangeRate;
+
+    if (outcomeAmount > savedFundFrom.amount) throw new BadRequestException('Not enough money');
+
+    return {
+      outcome: {
+        amount: outcomeAmount,
+        currency: savedFundFrom.currency.code,
+      },
+      income: {
+        amount: incomeAmount,
+        currency: savedFundTo.currency.code,
+      },
+      rate: {
+        amount: outcomeAmount / incomeAmount,
+        currency: savedFundFrom.currency.code,
+      },
     };
   }
 }

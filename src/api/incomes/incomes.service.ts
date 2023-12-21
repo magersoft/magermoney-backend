@@ -129,7 +129,7 @@ export class IncomesService {
       include: { currency: true },
     });
 
-    if (income.userId !== userId) throw new ForbiddenException();
+    if (income.userId !== userId) throw new ForbiddenException(`You don't have permission to access this resource`);
 
     return income;
   }

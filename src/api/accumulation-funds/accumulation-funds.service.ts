@@ -41,7 +41,8 @@ export class AccumulationFundsService {
 
     const accumulationFund = await this.prisma.accumulationFunds.findUnique({ where: { id } });
 
-    if (accumulationFund.userId !== userId) throw new ForbiddenException();
+    if (accumulationFund.userId !== userId)
+      throw new ForbiddenException(`You don't have permission to access this resource`);
 
     return accumulationFund;
   }

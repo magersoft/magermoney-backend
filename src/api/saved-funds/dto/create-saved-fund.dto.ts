@@ -28,7 +28,6 @@ export class CreateSavedFundDto {
   @IsString()
   @IsDefined()
   @IsISO4217CurrencyCode()
-  @MaxLength(3)
   public readonly currency: string;
 
   @ApiProperty({ required: false })
