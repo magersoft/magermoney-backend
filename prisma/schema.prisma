@@ -29,6 +29,7 @@ model Users {
   accumulationFunds AccumulationFunds[]
   transfers         Transfers[]
   goals             Goals[]
+  currencies        CurrenciesOnUsers[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -183,14 +184,15 @@ model Currencies {
   name   String @db.VarChar(100)
   symbol String @db.VarChar(10)
 
-  exchangeRatesTo   ExchangeRates[]  @relation(name: "ExchangeRateTo")
-  exchangeRatesFrom ExchangeRates[]  @relation(name: "ExchangeRateFrom")
+  exchangeRatesTo   ExchangeRates[]     @relation(name: "ExchangeRateTo")
+  exchangeRatesFrom ExchangeRates[]     @relation(name: "ExchangeRateFrom")
   incomes           Incomes[]
   expenses          Expenses[]
   incomeSources     IncomeSources[]
   expenseSources    ExpenseSources[]
   savedFunds        SavedFunds[]
   transfers         Transfers[]
+  users             CurrenciesOnUsers[]
 
   @@index([code])
 }
@@ -208,6 +210,16 @@ model ExchangeRates {
   updatedAt DateTime @updatedAt
 
   @@index([toId, fromId])
+}
+
+model CurrenciesOnUsers {
+  user   Users @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId Int
+
+  currency   Currencies @relation(fields: [currencyId], references: [id], onDelete: Cascade)
+  currencyId Int
+
+  @@id([userId, currencyId])
 }
 
 enum Role {

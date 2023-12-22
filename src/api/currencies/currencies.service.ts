@@ -11,9 +11,11 @@ import { AxiosError } from 'axios';
 import { PrismaService } from 'nestjs-prisma';
 import { catchError, firstValueFrom } from 'rxjs';
 
+import { CreateAllByUserDto } from '@/api/currencies/dto/create-all-by-user.dto';
 import { CurrencyEntity } from '@/api/currencies/entities/currency.entity';
 import { mocksCurrenciesApiData } from '@/api/currencies/mocks/mocksCurrencies';
 import { mapCurrencies } from '@/api/currencies/utils/mapCurrencies';
+import { RequestContext } from '@/shared/types';
 
 @Injectable()
 export class CurrenciesService {
@@ -35,6 +37,22 @@ export class CurrenciesService {
     return await this.prisma.currencies.findMany();
   }
 
+  public async findAllByUser(req: RequestContext): Promise<CurrencyEntity[]> {
+    const { id: userId } = req.user;
+
+    return await this.prisma.currencies.findMany({
+      where: {
+        users: {
+          some: {
+            user: {
+              id: userId,
+            },
+          },
+        },
+      },
+    });
+  }
+
   public async findOne(code: string): Promise<CurrencyEntity> {
     await this.fetchCurrencies();
     return await this.prisma.currencies.findUniqueOrThrow({
@@ -42,6 +60,23 @@ export class CurrenciesService {
         code,
       },
     });
+  }
+
+  public async createAllByUser(req: RequestContext, createAllByUserDto: CreateAllByUserDto): Promise<CurrencyEntity[]> {
+    const { id: userId } = req.user;
+    const { currenciesIds } = createAllByUserDto;
+
+    if (currenciesIds.length === 0) throw new BadRequestException('Select at least one currency');
+
+    const removeCurrenciesByUser = this.prisma.currenciesOnUsers.deleteMany({ where: { userId } });
+    const createCurrenciesByUser = this.prisma.currenciesOnUsers.createMany({
+      data: currenciesIds.map((id) => ({ userId, currencyId: id })),
+      skipDuplicates: true,
+    });
+
+    await this.prisma.$transaction([removeCurrenciesByUser, createCurrenciesByUser]);
+
+    return await this.findAllByUser(req);
   }
 
   public async getExchangeRate(baseCurrency: string, targetCurrency: string) {
