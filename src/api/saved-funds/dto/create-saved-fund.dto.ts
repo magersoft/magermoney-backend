@@ -5,9 +5,9 @@ import {
   IsISO4217CurrencyCode,
   IsNotEmpty,
   IsNumber,
-  IsPositive,
   IsString,
   MaxLength,
+  Min,
 } from 'class-validator';
 
 export class CreateSavedFundDto {
@@ -20,7 +20,7 @@ export class CreateSavedFundDto {
 
   @ApiProperty()
   @IsDefined()
-  @IsPositive()
+  @Min(0)
   @IsNumber()
   public readonly amount: number;
 

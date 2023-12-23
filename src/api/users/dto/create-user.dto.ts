@@ -1,5 +1,13 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { IsBoolean, IsEmail, IsLocale, IsOptional, IsPhoneNumber } from 'class-validator';
+import {
+  IsBoolean,
+  IsEmail,
+  IsISO4217CurrencyCode,
+  IsLocale,
+  IsOptional,
+  IsPhoneNumber,
+  IsString,
+} from 'class-validator';
 
 export class CreateUserDto {
   @ApiProperty({ uniqueItems: true })
@@ -20,4 +28,10 @@ export class CreateUserDto {
   @IsOptional()
   @IsLocale()
   public readonly language?: string;
+
+  @ApiProperty({ required: false })
+  @IsString()
+  @IsISO4217CurrencyCode()
+  @IsOptional()
+  public readonly currency?: string;
 }

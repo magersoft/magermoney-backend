@@ -13,6 +13,7 @@ import { catchError, firstValueFrom } from 'rxjs';
 
 import { CreateAllByUserDto } from '@/api/currencies/dto/create-all-by-user.dto';
 import { CurrencyEntity } from '@/api/currencies/entities/currency.entity';
+import { CurrencyRateEntity } from '@/api/currencies/entities/currency-rate.entity';
 import { mocksCurrenciesApiData } from '@/api/currencies/mocks/mocksCurrencies';
 import { mapCurrencies } from '@/api/currencies/utils/mapCurrencies';
 import { RequestContext } from '@/shared/types';
@@ -32,8 +33,8 @@ export class CurrenciesService {
     this.fetchCurrencies();
   }
 
-  public async findAll(): Promise<CurrencyEntity[]> {
-    await this.fetchCurrencies();
+  public async findAll(force = false): Promise<CurrencyEntity[]> {
+    await this.fetchCurrencies(force);
     return await this.prisma.currencies.findMany();
   }
 
@@ -51,6 +52,48 @@ export class CurrenciesService {
         },
       },
     });
+  }
+
+  public async findAllRates(req: RequestContext): Promise<CurrencyRateEntity[]> {
+    const { id: userId } = req.user;
+    const { currency: currencyCode } = await this.prisma.users.findUnique({ where: { id: userId } });
+
+    const exchangeRates = await this.prisma.exchangeRates.findMany({
+      where: {
+        to: {
+          users: {
+            some: {
+              user: {
+                id: userId,
+              },
+            },
+          },
+        },
+      },
+      include: { to: true, from: true },
+    });
+
+    const results = exchangeRates
+      .map((exchangeRate) => ({
+        from: exchangeRate.from.code,
+        to: exchangeRate.to.code,
+        price: exchangeRate.rate,
+      }))
+      .filter((exchangeRate) => exchangeRate.to === currencyCode);
+
+    if (!results.length) {
+      for (const exchangeRate of exchangeRates) {
+        if (exchangeRate.from.code === currencyCode) {
+          results.push({
+            from: exchangeRate.from.code,
+            to: exchangeRate.to.code,
+            price: 1 / exchangeRate.rate,
+          });
+        }
+      }
+    }
+
+    return results;
   }
 
   public async findOne(code: string): Promise<CurrencyEntity> {
@@ -170,13 +213,17 @@ export class CurrenciesService {
     return data.data[targetCurrency];
   }
 
-  private async fetchCurrencies(): Promise<void> {
+  private async fetchCurrencies(force = false): Promise<void> {
     let currencies: Omit<CurrencyEntity, 'id'>[];
 
     const countCurrencies = await this.prisma.currencies.count();
-    if (countCurrencies) return;
+    if (countCurrencies && !force) return;
 
-    this.logger.warn('Currencies were not found in database, fetching...');
+    this.logger.warn(
+      force
+        ? 'Request force currencies from external API, fetching...'
+        : 'Currencies were not found in database, fetching...',
+    );
 
     if (this.isDev) {
       currencies = await new Promise((resolve) =>

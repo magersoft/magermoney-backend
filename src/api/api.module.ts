@@ -11,6 +11,7 @@ import { IncomesModule } from './incomes/incomes.module';
 import { SavedFundsModule } from './saved-funds/saved-funds.module';
 import { TransfersModule } from './transfers/transfers.module';
 import { UsersModule } from './users/users.module';
+import { HistoryModule } from './history/history.module';
 
 @Module({
   imports: [
@@ -25,6 +26,7 @@ import { UsersModule } from './users/users.module';
     IncomesModule,
     ExpensesModule,
     TransfersModule,
+    HistoryModule,
   ],
   exports: [
     AuthModule,

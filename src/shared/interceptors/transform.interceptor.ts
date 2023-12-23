@@ -9,7 +9,7 @@ export class TransformInterceptor<T> implements NestInterceptor<T, any> {
         const ctx = context.switchToHttp();
         const response = ctx.getResponse();
 
-        if (data.meta) {
+        if (data && data.meta) {
           const { data: responseData, meta } = data;
 
           response.meta = meta || {};
