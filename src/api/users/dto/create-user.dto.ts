@@ -10,9 +10,9 @@ import {
 } from 'class-validator';
 
 export class CreateUserDto {
-  @ApiProperty({ uniqueItems: true })
+  @ApiProperty({ required: false, uniqueItems: true, nullable: true })
   @IsEmail()
-  public readonly email: string;
+  public readonly email?: string;
 
   @ApiProperty({ required: false, uniqueItems: true, nullable: true })
   @IsPhoneNumber()

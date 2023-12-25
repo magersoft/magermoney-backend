@@ -11,6 +11,10 @@ export class UsersService {
   constructor(private readonly prisma: PrismaService) {}
 
   public async create(createUserDto: CreateUserDto) {
+    const { email, phone } = createUserDto;
+
+    if (!email && !phone) throw new ForbiddenException(`Email or phone is required`);
+
     return await this.prisma.users.create({ data: createUserDto });
   }
 

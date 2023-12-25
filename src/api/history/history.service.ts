@@ -16,70 +16,65 @@ export class HistoryService {
 
     const skip = page > 0 ? pageSize * (page - 1) : 0;
 
-    const user = await this.prisma.users.findUnique({
-      where: { id: userId },
-      include: {
-        incomes: {
-          take: pageSize,
-          skip: skip,
-          include: { currency: true },
-          orderBy: {
-            dateOfIssue: 'desc',
-          },
-        },
-        expenses: {
-          take: pageSize,
-          skip: skip,
-          include: { currency: true },
-          orderBy: {
-            dateOfIssue: 'desc',
-          },
-        },
-        transfers: {
-          take: pageSize,
-          skip: skip,
-          include: { currency: true, to: true, from: true },
-          orderBy: {
-            createdAt: 'desc',
-          },
-        },
-      },
-    });
+    const history = (await this.prisma.$queryRaw`
+    SELECT * FROM (
+      SELECT 'income' as type, "id", "dateOfIssue" FROM "Incomes" WHERE "userId" = ${userId}
+      UNION ALL
+      SELECT 'expense' as type, "id", "dateOfIssue" FROM "Expenses" WHERE "userId" = ${userId}
+      UNION ALL
+      SELECT 'transfer' as type, "id", "createdAt" as "dateOfIssue" FROM "Transfers" WHERE "userId" = ${userId}
+    ) as history
+    ORDER BY "dateOfIssue" DESC
+    LIMIT ${pageSize} OFFSET ${skip}
+  `) as any[];
 
-    const history: HistoryEntity[] = [];
+    return Promise.all(
+      history.map(async (item): Promise<HistoryEntity> => {
+        if (item.type === HistoryType.Income) {
+          const { title, amount, currency, dateOfIssue } = await this.prisma.incomes.findUnique({
+            where: { id: item.id },
+            include: { currency: true },
+          });
 
-    user.incomes.forEach((income) => {
-      history.push({
-        type: HistoryType.Income,
-        title: income.title,
-        amount: income.amount,
-        currency: income.currency,
-        dateOfIssue: income.dateOfIssue,
-      });
-    });
+          return {
+            type: item.type,
+            title,
+            amount,
+            currency,
+            dateOfIssue,
+          };
+        }
 
-    user.expenses.forEach((expense) => {
-      history.push({
-        type: HistoryType.Expense,
-        title: expense.title,
-        amount: expense.amount,
-        currency: expense.currency,
-        dateOfIssue: expense.dateOfIssue,
-      });
-    });
+        if (item.type === HistoryType.Expense) {
+          const { title, amount, currency, dateOfIssue } = await this.prisma.expenses.findUnique({
+            where: { id: item.id },
+            include: { currency: true },
+          });
 
-    user.transfers.forEach((transfer) => {
-      history.push({
-        type: HistoryType.Transfer,
-        title: `${transfer.from.source} - ${transfer.to.source}`,
-        amount: transfer.amount,
-        currency: transfer.currency,
-        dateOfIssue: transfer.createdAt,
-      });
-    });
+          return {
+            type: item.type,
+            title,
+            amount,
+            currency,
+            dateOfIssue,
+          };
+        }
 
-    history.sort((a, b) => b.dateOfIssue.getTime() - a.dateOfIssue.getTime());
+        if (item.type === HistoryType.Transfer) {
+          const { amount, createdAt, currency, from, to } = await this.prisma.transfers.findUnique({
+            where: { id: item.id },
+            include: { currency: true, to: true, from: true },
+          });
 
-    return history;
+          return {
+            type: item.type,
+            title: `${from.source} - ${to.source}`,
+            amount,
+            currency,
+            dateOfIssue: createdAt,
+          };
+        }
+      }),
+    );
   }
 }
