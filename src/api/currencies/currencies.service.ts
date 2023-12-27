@@ -60,7 +60,7 @@ export class CurrenciesService {
 
     const exchangeRates = await this.prisma.exchangeRates.findMany({
       where: {
-        to: {
+        from: {
           users: {
             some: {
               user: {
