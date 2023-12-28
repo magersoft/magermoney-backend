@@ -1,24 +1,33 @@
 import { Injectable } from '@nestjs/common';
+import { Prisma } from '@prisma/client';
 import { PrismaService } from 'nestjs-prisma';
 
 import { QueryHistoryDto } from '@/api/history/dto/query-history.dto';
 import { HistoryEntity } from '@/api/history/entities/history.entity';
 import { HistoryType } from '@/api/history/enums/history-type.enum';
+import { UsersService } from '@/api/users/users.service';
 import { RequestContext } from '@/shared/types';
 
 @Injectable()
 export class HistoryService {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly userService: UsersService,
+  ) {}
 
   public async findAll(req: RequestContext, query: QueryHistoryDto): Promise<HistoryEntity[]> {
-    const { id: userId } = req.user;
-    const { perPage: pageSize, page } = query;
+    const { id: userId } = await this.userService.findOne(req, req.user.id);
+
+    const { perPage: pageSize, page, startDate, endDate } = query;
 
     const skip = page > 0 ? pageSize * (page - 1) : 0;
 
-    const history = (await this.prisma.$queryRaw`
+    const dateCondition =
+      startDate && endDate ? `AND "dateOfIssue" BETWEEN ${new Date(startDate)} AND ${new Date(endDate)}` : '';
+
+    const sql = `
     SELECT * FROM (
-      SELECT 'income' as type, "id", "dateOfIssue" FROM "Incomes" WHERE "userId" = ${userId}
+      SELECT 'income' as type, "id", "dateOfIssue" FROM "Incomes" WHERE "userId" = ${userId} ${dateCondition}
       UNION ALL
       SELECT 'expense' as type, "id", "dateOfIssue" FROM "Expenses" WHERE "userId" = ${userId}
       UNION ALL
@@ -26,7 +35,9 @@ export class HistoryService {
     ) as history
     ORDER BY "dateOfIssue" DESC
     LIMIT ${pageSize} OFFSET ${skip}
-  `) as any[];
+  `;
+
+    const history = (await this.prisma.$queryRaw`${Prisma.raw(sql)}`) as any[];
 
     return Promise.all(
       history.map(async (item): Promise<HistoryEntity> => {
