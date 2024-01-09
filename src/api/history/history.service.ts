@@ -6,6 +6,7 @@ import { QueryHistoryDto } from '@/api/history/dto/query-history.dto';
 import { HistoryEntity } from '@/api/history/entities/history.entity';
 import { HistoryType } from '@/api/history/enums/history-type.enum';
 import { UsersService } from '@/api/users/users.service';
+import { FIRST_PAGE, PER_PAGE } from '@/shared/constants';
 import { RequestContext } from '@/shared/types';
 
 @Injectable()
@@ -18,20 +19,27 @@ export class HistoryService {
   public async findAll(req: RequestContext, query: QueryHistoryDto): Promise<HistoryEntity[]> {
     const { id: userId } = await this.userService.findOne(req, req.user.id);
 
-    const { perPage: pageSize, page, startDate, endDate } = query;
+    const { perPage: pageSize = PER_PAGE, page = FIRST_PAGE, startDate, endDate } = query;
 
     const skip = page > 0 ? pageSize * (page - 1) : 0;
 
     const dateCondition =
-      startDate && endDate ? `AND "dateOfIssue" BETWEEN ${new Date(startDate)} AND ${new Date(endDate)}` : '';
+      startDate && endDate
+        ? `AND "dateOfIssue" BETWEEN '${new Date(startDate).toISOString()}' AND '${new Date(endDate).toISOString()}'`
+        : '';
+
+    const dateTransferCondition =
+      startDate && endDate
+        ? `AND "createdAt" BETWEEN '${new Date(startDate).toISOString()}' AND '${new Date(endDate).toISOString()}'`
+        : '';
 
     const sql = `
     SELECT * FROM (
       SELECT 'income' as type, "id", "dateOfIssue" FROM "Incomes" WHERE "userId" = ${userId} ${dateCondition}
       UNION ALL
-      SELECT 'expense' as type, "id", "dateOfIssue" FROM "Expenses" WHERE "userId" = ${userId}
+      SELECT 'expense' as type, "id", "dateOfIssue" FROM "Expenses" WHERE "userId" = ${userId} ${dateCondition}
       UNION ALL
-      SELECT 'transfer' as type, "id", "createdAt" as "dateOfIssue" FROM "Transfers" WHERE "userId" = ${userId}
+      SELECT 'transfer' as type, "id", "createdAt" as "dateOfIssue" FROM "Transfers" WHERE "userId" = ${userId} ${dateTransferCondition}
     ) as history
     ORDER BY "dateOfIssue" DESC
     LIMIT ${pageSize} OFFSET ${skip}

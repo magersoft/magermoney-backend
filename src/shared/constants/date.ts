@@ -4,3 +4,5 @@ export const CURRENT_DAY = new Date().getDate();
 
 export const BEGIN_MONTH = new Date(CURRENT_YEAR, CURRENT_MONTH, 1);
 export const END_MONTH = new Date(CURRENT_YEAR, CURRENT_MONTH + 1, 0);
+
+export const DAYS_IN_MONTH = new Date(CURRENT_YEAR, CURRENT_MONTH + 1, 0).getDate();

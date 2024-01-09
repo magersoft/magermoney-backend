@@ -14,5 +14,11 @@ export class MonthlyBudgetEntity {
   public restAmountPercentage: number;
 
   @ApiProperty()
+  public accumulationFundAmount: number;
+
+  @ApiProperty()
+  public availableAmountInDay: number;
+
+  @ApiProperty()
   public currency: string;
 }

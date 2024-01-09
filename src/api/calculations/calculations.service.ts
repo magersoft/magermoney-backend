@@ -17,7 +17,7 @@ import { ExpensesService } from '@/api/expenses/expenses.service';
 import { IncomeSourcesService } from '@/api/income-sources/income-sources.service';
 import { IncomesService } from '@/api/incomes/incomes.service';
 import { SavedFundsService } from '@/api/saved-funds/saved-funds.service';
-import { BEGIN_MONTH, END_MONTH } from '@/shared/constants';
+import { BEGIN_MONTH, DAYS_IN_MONTH, END_MONTH } from '@/shared/constants';
 import { RequestContext } from '@/shared/types';
 
 @Injectable()
@@ -156,14 +156,18 @@ export class CalculationsService {
     }, 0);
 
     const accumulationFundAmount = (totalIncomesAmount / 100) * accumulationFundPercent;
-
     const budget = totalIncomesAmount - totalExpensesAmount - accumulationFundAmount;
+    const restAmount = budget - totalExpensesAmount;
+    const restAmountPercentage = (budget / totalIncomesAmount) * 100;
+    const availableAmountInDay = restAmount / DAYS_IN_MONTH;
 
     return {
       budget,
       spent: totalExpensesAmount,
-      restAmount: budget - totalExpensesAmount,
-      restAmountPercentage: (budget / totalIncomesAmount) * 100,
+      restAmount,
+      restAmountPercentage,
+      accumulationFundAmount,
+      availableAmountInDay,
       currency,
     };
   }

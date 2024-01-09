@@ -30,7 +30,9 @@ export class ExpensesService {
     const { id: currencyId, code: currencyCode } = await this.currenciesService.findOne(currency);
     const savedFund = await this.savedFundsService.findOne(req, savedFundId);
 
-    if (savedFund.amount < expenseDto.amount) throw new BadRequestException('Not enough money');
+    const exchangeRate = await this.currenciesService.getExchangeRate(currencyCode, savedFund.currency.code);
+
+    if (savedFund.amount < expenseDto.amount * exchangeRate) throw new BadRequestException('Not enough money');
 
     if (isSingleExpense) {
       const amount = await this.currenciesService.subtractionOfCurrencyAmounts(
