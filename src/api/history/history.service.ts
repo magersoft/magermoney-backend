@@ -19,7 +19,7 @@ export class HistoryService {
   public async findAll(req: RequestContext, query: QueryHistoryDto): Promise<HistoryEntity[]> {
     const { id: userId } = await this.userService.findOne(req, req.user.id);
 
-    const { perPage: pageSize = PER_PAGE, page = FIRST_PAGE, startDate, endDate } = query;
+    const { perPage: pageSize = PER_PAGE, page = FIRST_PAGE, startDate, endDate, savedFundId } = query;
 
     const skip = page > 0 ? pageSize * (page - 1) : 0;
 
@@ -33,13 +33,19 @@ export class HistoryService {
         ? `AND "createdAt" BETWEEN '${new Date(startDate).toISOString()}' AND '${new Date(endDate).toISOString()}'`
         : '';
 
+    const savedFundCondition = query.savedFundId ? `AND "savedFundId" = ${savedFundId}` : '';
+
+    const savedFundTransferCondition = query.savedFundId
+      ? `AND "toId" = ${savedFundId} OR "fromId" = ${savedFundId}`
+      : '';
+
     const sql = `
     SELECT * FROM (
-      SELECT 'income' as type, "id", "dateOfIssue" FROM "Incomes" WHERE "userId" = ${userId} ${dateCondition}
+      SELECT 'income' as type, "id", "dateOfIssue" FROM "Incomes" WHERE "userId" = ${userId} ${savedFundCondition} ${dateCondition}
       UNION ALL
-      SELECT 'expense' as type, "id", "dateOfIssue" FROM "Expenses" WHERE "userId" = ${userId} ${dateCondition}
+      SELECT 'expense' as type, "id", "dateOfIssue" FROM "Expenses" WHERE "userId" = ${userId} ${savedFundCondition} ${dateCondition}
       UNION ALL
-      SELECT 'transfer' as type, "id", "createdAt" as "dateOfIssue" FROM "Transfers" WHERE "userId" = ${userId} ${dateTransferCondition}
+      SELECT 'transfer' as type, "id", "createdAt" as "dateOfIssue" FROM "Transfers" WHERE "userId" = ${userId} ${savedFundTransferCondition} ${dateTransferCondition}
     ) as history
     ORDER BY "dateOfIssue" DESC
     LIMIT ${pageSize} OFFSET ${skip}
