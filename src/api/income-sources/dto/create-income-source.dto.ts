@@ -8,15 +8,17 @@ import {
   IsPositive,
   IsString,
   MaxLength,
+  MinLength,
 } from 'class-validator';
 
 export class CreateIncomeSourceDto {
-  @ApiProperty()
+  @ApiProperty({ required: false })
+  @IsOptional()
   @IsString()
-  @IsDefined()
   @IsNotEmpty()
   @MaxLength(100)
-  public readonly title: string;
+  @MinLength(3)
+  public readonly title?: string;
 
   @ApiProperty({ required: false, nullable: true })
   @IsOptional()
@@ -27,6 +29,13 @@ export class CreateIncomeSourceDto {
   @IsPositive()
   @IsNumber()
   public readonly amount: number;
+
+  @ApiProperty({ required: false })
+  @IsOptional()
+  @IsNumber()
+  @IsPositive()
+  @IsNotEmpty()
+  public readonly categoryId?: number;
 
   @ApiProperty()
   @IsString()

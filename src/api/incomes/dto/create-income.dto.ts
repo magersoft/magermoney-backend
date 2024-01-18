@@ -5,17 +5,21 @@ import {
   IsISO4217CurrencyCode,
   IsNotEmpty,
   IsNumber,
+  IsOptional,
   IsPositive,
   IsString,
   MaxLength,
+  MinLength,
 } from 'class-validator';
 
 export class CreateIncomeDto {
-  @ApiProperty()
+  @ApiProperty({ required: false })
+  @IsOptional()
   @IsString()
   @IsNotEmpty()
   @MaxLength(100)
-  public readonly title: string;
+  @MinLength(3)
+  public readonly title?: string;
 
   @ApiProperty()
   @IsNumber()
@@ -28,6 +32,13 @@ export class CreateIncomeDto {
   @IsISO4217CurrencyCode()
   @IsDefined()
   public readonly currency: string;
+
+  @ApiProperty({ required: false })
+  @IsOptional()
+  @IsNumber()
+  @IsPositive()
+  @IsNotEmpty()
+  public readonly categoryId?: number;
 
   @ApiProperty()
   @IsDate()

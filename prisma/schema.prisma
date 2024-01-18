@@ -30,15 +30,18 @@ model Users {
   transfers         Transfers[]
   goals             Goals[]
   currencies        CurrenciesOnUsers[]
+  categories        Categories[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 }
 
 model IncomeSources {
-  id     Int    @id @default(autoincrement())
-  title  String @db.VarChar(100)
-  amount Float  @db.DoublePrecision
+  id     Int   @id @default(autoincrement())
+  amount Float @db.DoublePrecision
+
+  category   Categories @relation(fields: [categoryId], references: [id])
+  categoryId Int
 
   currency   Currencies @relation(fields: [currencyId], references: [id])
   currencyId Int
@@ -53,9 +56,11 @@ model IncomeSources {
 }
 
 model ExpenseSources {
-  id     Int    @id @default(autoincrement())
-  title  String @db.VarChar(100)
-  amount Float  @db.DoublePrecision
+  id     Int   @id @default(autoincrement())
+  amount Float @db.DoublePrecision
+
+  category   Categories @relation(fields: [categoryId], references: [id])
+  categoryId Int
 
   currency   Currencies @relation(fields: [currencyId], references: [id])
   currencyId Int
@@ -71,7 +76,6 @@ model ExpenseSources {
 
 model Incomes {
   id          Int      @id @default(autoincrement())
-  title       String   @db.VarChar(100)
   amount      Float    @db.DoublePrecision
   dateOfIssue DateTime @default(now())
 
@@ -80,6 +84,9 @@ model Incomes {
 
   incomeSource   IncomeSources? @relation(fields: [incomeSourceId], references: [id], onDelete: SetNull)
   incomeSourceId Int?
+
+  category   Categories @relation(fields: [categoryId], references: [id])
+  categoryId Int
 
   currency   Currencies @relation(fields: [currencyId], references: [id])
   currencyId Int
@@ -93,7 +100,6 @@ model Incomes {
 
 model Expenses {
   id          Int      @id @default(autoincrement())
-  title       String   @db.VarChar(100)
   amount      Float    @db.DoublePrecision
   dateOfIssue DateTime @default(now())
 
@@ -102,6 +108,9 @@ model Expenses {
 
   expenseSource   ExpenseSources? @relation(fields: [expenseSourceId], references: [id], onDelete: SetNull)
   expenseSourceId Int?
+
+  category   Categories @relation(fields: [categoryId], references: [id])
+  categoryId Int
 
   currency   Currencies @relation(fields: [currencyId], references: [id])
   currencyId Int
@@ -178,6 +187,24 @@ model Transfers {
   @@index([toId, fromId])
 }
 
+model Categories {
+  id        Int          @id @default(autoincrement())
+  name      String       @db.VarChar(100)
+  type      CategoryType @default(INCOME)
+  isDefault Boolean      @default(false)
+
+  user   Users? @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId Int?
+
+  incomeSources  IncomeSources[]
+  expenseSources ExpenseSources[]
+  incomes        Incomes[]
+  expenses       Expenses[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
 model Currencies {
   id     Int    @id @default(autoincrement())
   code   String @unique @db.VarChar(3)
@@ -225,4 +252,9 @@ model CurrenciesOnUsers {
 enum Role {
   USER
   ADMIN
+}
+
+enum CategoryType {
+  INCOME
+  EXPENSE
 }

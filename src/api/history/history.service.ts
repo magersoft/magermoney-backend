@@ -2,6 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { Prisma } from '@prisma/client';
 import { PrismaService } from 'nestjs-prisma';
 
+import { CategoriesService } from '@/api/categories/categories.service';
 import { QueryHistoryDto } from '@/api/history/dto/query-history.dto';
 import { HistoryEntity } from '@/api/history/entities/history.entity';
 import { HistoryType } from '@/api/history/enums/history-type.enum';
@@ -14,6 +15,7 @@ export class HistoryService {
   constructor(
     private readonly prisma: PrismaService,
     private readonly userService: UsersService,
+    private readonly categoriesService: CategoriesService,
   ) {}
 
   public async findAll(req: RequestContext, query: QueryHistoryDto): Promise<HistoryEntity[]> {
@@ -56,10 +58,12 @@ export class HistoryService {
     return Promise.all(
       history.map(async (item): Promise<HistoryEntity> => {
         if (item.type === HistoryType.Income) {
-          const { title, amount, currency, dateOfIssue } = await this.prisma.incomes.findUnique({
+          const { amount, currency, dateOfIssue, categoryId } = await this.prisma.incomes.findUnique({
             where: { id: item.id },
             include: { currency: true },
           });
+
+          const { name: title } = await this.categoriesService.findOne(req, categoryId);
 
           return {
             type: item.type,
@@ -71,10 +75,12 @@ export class HistoryService {
         }
 
         if (item.type === HistoryType.Expense) {
-          const { title, amount, currency, dateOfIssue } = await this.prisma.expenses.findUnique({
+          const { amount, currency, dateOfIssue, categoryId } = await this.prisma.expenses.findUnique({
             where: { id: item.id },
             include: { currency: true },
           });
+
+          const { name: title } = await this.categoriesService.findOne(req, categoryId);
 
           return {
             type: item.type,

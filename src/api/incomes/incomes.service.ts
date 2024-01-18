@@ -2,6 +2,7 @@ import { ForbiddenException, Injectable } from '@nestjs/common';
 import { Prisma } from '@prisma/client';
 import { PrismaService } from 'nestjs-prisma';
 
+import { CategoriesService } from '@/api/categories/categories.service';
 import { CurrenciesService } from '@/api/currencies/currencies.service';
 import { IncomeSourcesService } from '@/api/income-sources/income-sources.service';
 import { QueryIncomesDto } from '@/api/incomes/dto/query-incomes.dto';
@@ -12,6 +13,7 @@ import { RequestContext } from '@/shared/types';
 
 import { CreateIncomeDto } from './dto/create-income.dto';
 import { UpdateIncomeDto } from './dto/update-income.dto';
+import { $Enums } from '.prisma/client';
 
 @Injectable()
 export class IncomesService {
@@ -20,21 +22,26 @@ export class IncomesService {
     private readonly currenciesService: CurrenciesService,
     private readonly incomeSourcesService: IncomeSourcesService,
     private readonly savedFundsService: SavedFundsService,
+    private readonly categoriesService: CategoriesService,
   ) {}
 
   public async create(req: RequestContext, createIncomeDto: CreateIncomeDto) {
     const { id: userId } = req.user;
-    const { incomeSourceId, savedFundId, currency, ...incomeDto } = createIncomeDto;
+    const { title, incomeSourceId, savedFundId, categoryId, currency: currencyCode, ...incomeDto } = createIncomeDto;
     const isSingleIncome = !incomeSourceId;
 
-    const { id: currencyId, code: currencyCode } = await this.currenciesService.findOne(currency);
+    const currency = await this.currenciesService.findOne(currencyCode);
     const savedFund = await this.savedFundsService.findOne(req, savedFundId);
 
     if (isSingleIncome) {
+      const category = categoryId
+        ? await this.categoriesService.findOne(req, categoryId)
+        : await this.categoriesService.create(req, { name: title, type: $Enums.CategoryType.INCOME });
+
       const amount = await this.currenciesService.additionOfCurrencyAmounts(
         savedFund.amount,
         incomeDto.amount,
-        currencyCode,
+        currency.code,
         savedFund.currency.code,
       );
 
@@ -44,7 +51,7 @@ export class IncomesService {
       });
 
       const createIncome = this.prisma.incomes.create({
-        data: { ...incomeDto, userId, currencyId, savedFundId: savedFund.id },
+        data: { ...incomeDto, userId, currencyId: currency.id, savedFundId: savedFund.id, categoryId: category.id },
       });
 
       const [createdIncome] = await this.prisma.$transaction([createIncome, updateSaveFund]);
@@ -68,10 +75,10 @@ export class IncomesService {
 
     const createIncome = this.prisma.incomes.create({
       data: {
-        title: incomeSource.title,
         amount: incomeSource.amount,
         currencyId: incomeSource.currencyId,
         userId: incomeSource.userId,
+        categoryId: incomeSource.categoryId,
         savedFundId: savedFund.id,
         incomeSourceId: incomeSource.id,
         dateOfIssue: incomeDto.dateOfIssue,
@@ -100,7 +107,7 @@ export class IncomesService {
           },
         },
         orderBy: { dateOfIssue: 'desc' },
-        include: { currency: true },
+        include: { currency: true, category: { select: { id: true, name: true } } },
       },
       { page },
     );
@@ -117,7 +124,7 @@ export class IncomesService {
           lt: endDate,
         },
       },
-      include: { currency: true },
+      include: { currency: true, category: { select: { id: true, name: true } } },
     });
   }
 
@@ -126,7 +133,7 @@ export class IncomesService {
 
     const income = await this.prisma.incomes.findUniqueOrThrow({
       where: { id },
-      include: { currency: true },
+      include: { currency: true, category: { select: { id: true, name: true } } },
     });
 
     if (income.userId !== userId) throw new ForbiddenException(`You don't have permission to access this resource`);
@@ -144,7 +151,7 @@ export class IncomesService {
         userId,
       },
       data: { ...updateIncomeDto },
-      include: { currency: true },
+      include: { currency: true, category: { select: { id: true, name: true } } },
     });
   }
 

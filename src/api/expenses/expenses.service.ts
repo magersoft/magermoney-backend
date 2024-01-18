@@ -1,7 +1,8 @@
 import { BadRequestException, ForbiddenException, Injectable } from '@nestjs/common';
-import { Prisma } from '@prisma/client';
+import { $Enums, Prisma } from '@prisma/client';
 import { PrismaService } from 'nestjs-prisma';
 
+import { CategoriesService } from '@/api/categories/categories.service';
 import { CurrenciesService } from '@/api/currencies/currencies.service';
 import { ExpenseSourcesService } from '@/api/expense-sources/expense-sources.service';
 import { QueryExpensesDto } from '@/api/expenses/dto/query-expenses.dto';
@@ -20,25 +21,30 @@ export class ExpensesService {
     private readonly currenciesService: CurrenciesService,
     private readonly expenseSourcesService: ExpenseSourcesService,
     private readonly savedFundsService: SavedFundsService,
+    private readonly categoriesService: CategoriesService,
   ) {}
 
   public async create(req: RequestContext, createExpenseDto: CreateExpenseDto) {
     const { id: userId } = req.user;
-    const { expenseSourceId, savedFundId, currency, ...expenseDto } = createExpenseDto;
+    const { title, expenseSourceId, savedFundId, categoryId, currency: currencyCode, ...expenseDto } = createExpenseDto;
     const isSingleExpense = !expenseSourceId;
 
-    const { id: currencyId, code: currencyCode } = await this.currenciesService.findOne(currency);
+    const currency = await this.currenciesService.findOne(currencyCode);
     const savedFund = await this.savedFundsService.findOne(req, savedFundId);
 
-    const exchangeRate = await this.currenciesService.getExchangeRate(currencyCode, savedFund.currency.code);
+    const exchangeRate = await this.currenciesService.getExchangeRate(currency.code, savedFund.currency.code);
 
     if (savedFund.amount < expenseDto.amount * exchangeRate) throw new BadRequestException('Not enough money');
 
     if (isSingleExpense) {
+      const category = categoryId
+        ? await this.categoriesService.findOne(req, categoryId)
+        : await this.categoriesService.create(req, { name: title, type: $Enums.CategoryType.EXPENSE });
+
       const amount = await this.currenciesService.subtractionOfCurrencyAmounts(
         savedFund.amount,
         expenseDto.amount,
-        currencyCode,
+        currency.code,
         savedFund.currency.code,
       );
 
@@ -48,7 +54,7 @@ export class ExpensesService {
       });
 
       const createExpense = this.prisma.expenses.create({
-        data: { ...expenseDto, userId, currencyId, savedFundId: savedFund.id },
+        data: { ...expenseDto, userId, currencyId: currency.id, savedFundId: savedFund.id, categoryId: category.id },
       });
 
       const [createdExpense] = await this.prisma.$transaction([createExpense, updateSaveFund]);
@@ -72,10 +78,10 @@ export class ExpensesService {
 
     const createExpense = this.prisma.expenses.create({
       data: {
-        title: expenseSource.title,
         amount: expenseSource.amount,
         currencyId: expenseSource.currencyId,
         userId: expenseSource.userId,
+        categoryId: expenseSource.categoryId,
         savedFundId: savedFund.id,
         expenseSourceId: expenseSource.id,
         dateOfIssue: expenseDto.dateOfIssue,
@@ -104,7 +110,7 @@ export class ExpensesService {
           },
         },
         orderBy: { dateOfIssue: 'desc' },
-        include: { currency: true },
+        include: { currency: true, category: { select: { id: true, name: true } } },
       },
       { page },
     );
@@ -130,7 +136,7 @@ export class ExpensesService {
 
     const expense = await this.prisma.expenses.findUniqueOrThrow({
       where: { id },
-      include: { currency: true },
+      include: { currency: true, category: { select: { id: true, name: true } } },
     });
 
     if (expense.userId !== userId) throw new ForbiddenException(`You don't have permission to access this resource`);
@@ -148,7 +154,7 @@ export class ExpensesService {
         userId,
       },
       data: { ...updateExpenseDto },
-      include: { currency: true },
+      include: { currency: true, category: { select: { id: true, name: true } } },
     });
   }
 

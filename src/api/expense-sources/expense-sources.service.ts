@@ -1,27 +1,35 @@
 import { ForbiddenException, Injectable } from '@nestjs/common';
 import { PrismaService } from 'nestjs-prisma';
 
+import { CategoriesService } from '@/api/categories/categories.service';
 import { CurrenciesService } from '@/api/currencies/currencies.service';
 import { RequestContext } from '@/shared/types';
 
 import { CreateExpenseSourceDto } from './dto/create-expense-source.dto';
 import { UpdateExpenseSourceDto } from './dto/update-expense-source.dto';
+import { $Enums } from '.prisma/client';
 
 @Injectable()
 export class ExpenseSourcesService {
   constructor(
     private readonly prisma: PrismaService,
     private readonly currenciesService: CurrenciesService,
+    private readonly categoriesService: CategoriesService,
   ) {}
 
   public async create(req: RequestContext, createExpenseSourceDto: CreateExpenseSourceDto) {
     const { id: userId } = req.user;
-    const { currency, ...expenseSourceDto } = createExpenseSourceDto;
-    const { id: currencyId } = await this.currenciesService.findOne(currency);
+    const { title, currency: currencyCode, categoryId, ...expenseSourceDto } = createExpenseSourceDto;
+
+    const category = categoryId
+      ? await this.categoriesService.findOne(req, categoryId)
+      : await this.categoriesService.create(req, { name: title, type: $Enums.CategoryType.EXPENSE });
+
+    const currency = await this.currenciesService.findOne(currencyCode);
 
     return await this.prisma.expenseSources.create({
-      data: { ...expenseSourceDto, userId, currencyId },
-      include: { currency: true },
+      data: { ...expenseSourceDto, userId, currencyId: currency.id, categoryId: category.id },
+      include: { currency: true, category: { select: { id: true, name: true } } },
     });
   }
 
@@ -32,7 +40,7 @@ export class ExpenseSourcesService {
       where: {
         userId,
       },
-      include: { currency: true },
+      include: { currency: true, category: { select: { id: true, name: true } } },
     });
   }
 
@@ -41,7 +49,7 @@ export class ExpenseSourcesService {
 
     const expenseSource = await this.prisma.expenseSources.findUniqueOrThrow({
       where: { id },
-      include: { currency: true },
+      include: { currency: true, category: { select: { id: true, name: true } } },
     });
 
     if (expenseSource.userId !== userId)
@@ -63,7 +71,7 @@ export class ExpenseSourcesService {
         userId,
       },
       data: { ...expenseSourceDto, currencyId },
-      include: { currency: true },
+      include: { currency: true, category: { select: { id: true, name: true } } },
     });
   }
 
@@ -73,7 +81,7 @@ export class ExpenseSourcesService {
 
     return await this.prisma.expenseSources.delete({
       where: { id: expenseSource.id, userId },
-      include: { currency: true },
+      include: { currency: true, category: { select: { id: true, name: true } } },
     });
   }
 }
