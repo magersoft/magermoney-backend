@@ -29,7 +29,7 @@ export class IncomeSourcesService {
 
     return await this.prisma.incomeSources.create({
       data: { ...incomeSourceDto, userId, currencyId: currency.id, categoryId: category.id },
-      include: { currency: true, category: { select: { id: true, name: true } } },
+      include: { currency: true, category: { select: { name: true } } },
     });
   }
 
@@ -40,7 +40,7 @@ export class IncomeSourcesService {
       where: {
         userId,
       },
-      include: { currency: true, category: { select: { id: true, name: true } } },
+      include: { currency: true, category: { select: { name: true } } },
     });
   }
 
@@ -49,7 +49,7 @@ export class IncomeSourcesService {
 
     const incomeSource = await this.prisma.incomeSources.findUniqueOrThrow({
       where: { id },
-      include: { currency: true, category: { select: { id: true, name: true } } },
+      include: { currency: true, category: { select: { name: true } } },
     });
 
     if (incomeSource.userId !== userId)
@@ -71,7 +71,7 @@ export class IncomeSourcesService {
         userId,
       },
       data: { ...incomeSourceDto, currencyId },
-      include: { currency: true, category: { select: { id: true, name: true } } },
+      include: { currency: true, category: { select: { name: true } } },
     });
   }
 
@@ -81,7 +81,7 @@ export class IncomeSourcesService {
 
     return await this.prisma.incomeSources.delete({
       where: { id: incomeSource.id, userId },
-      include: { currency: true, category: { select: { id: true, name: true } } },
+      include: { currency: true, category: { select: { name: true } } },
     });
   }
 }

@@ -6,7 +6,13 @@
     "assets": [
       {
         "include": "**/*.hbs",
-        "outDir": "dist/src"
+        "outDir": "dist/src",
+        "watchAssets": true
+      },
+      {
+        "include": "locales/**/*",
+        "outDir": "dist/src",
+        "watchAssets": true
       }
     ],
     "watchAssets": true,

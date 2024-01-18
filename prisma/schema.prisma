@@ -124,10 +124,12 @@ model Expenses {
 
 model SavedFunds {
   id     Int    @id @default(autoincrement())
-  source String @db.VarChar(100)
   amount Float  @db.DoublePrecision
   order  Int    @default(-1)
   color  String @default("#191919") @db.VarChar(7)
+
+  category   Categories @relation(fields: [categoryId], references: [id])
+  categoryId Int
 
   currency   Currencies @relation(fields: [currencyId], references: [id])
   currencyId Int
@@ -200,6 +202,7 @@ model Categories {
   expenseSources ExpenseSources[]
   incomes        Incomes[]
   expenses       Expenses[]
+  savedFunds     SavedFunds[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -257,4 +260,5 @@ enum Role {
 enum CategoryType {
   INCOME
   EXPENSE
+  SAVED
 }

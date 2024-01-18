@@ -110,7 +110,7 @@ export class ExpensesService {
           },
         },
         orderBy: { dateOfIssue: 'desc' },
-        include: { currency: true, category: { select: { id: true, name: true } } },
+        include: { currency: true, category: { select: { name: true } } },
       },
       { page },
     );
@@ -136,7 +136,7 @@ export class ExpensesService {
 
     const expense = await this.prisma.expenses.findUniqueOrThrow({
       where: { id },
-      include: { currency: true, category: { select: { id: true, name: true } } },
+      include: { currency: true, category: { select: { name: true } } },
     });
 
     if (expense.userId !== userId) throw new ForbiddenException(`You don't have permission to access this resource`);
@@ -154,7 +154,7 @@ export class ExpensesService {
         userId,
       },
       data: { ...updateExpenseDto },
-      include: { currency: true, category: { select: { id: true, name: true } } },
+      include: { currency: true, category: { select: { name: true } } },
     });
   }
 

@@ -107,7 +107,7 @@ export class IncomesService {
           },
         },
         orderBy: { dateOfIssue: 'desc' },
-        include: { currency: true, category: { select: { id: true, name: true } } },
+        include: { currency: true, category: { select: { name: true } } },
       },
       { page },
     );
@@ -124,7 +124,7 @@ export class IncomesService {
           lt: endDate,
         },
       },
-      include: { currency: true, category: { select: { id: true, name: true } } },
+      include: { currency: true, category: { select: { name: true } } },
     });
   }
 
@@ -133,7 +133,7 @@ export class IncomesService {
 
     const income = await this.prisma.incomes.findUniqueOrThrow({
       where: { id },
-      include: { currency: true, category: { select: { id: true, name: true } } },
+      include: { currency: true, category: { select: { name: true } } },
     });
 
     if (income.userId !== userId) throw new ForbiddenException(`You don't have permission to access this resource`);
@@ -151,7 +151,7 @@ export class IncomesService {
         userId,
       },
       data: { ...updateIncomeDto },
-      include: { currency: true, category: { select: { id: true, name: true } } },
+      include: { currency: true, category: { select: { name: true } } },
     });
   }
 

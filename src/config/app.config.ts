@@ -10,4 +10,5 @@ export default () => ({
   apiDocsPath: process.env.APP_API_DOCS_PATH || 'docs',
   jwtSecret: process.env.APP_JWT_SECRET || generateJwtSecret(),
   mocksDelay: 1000,
+  defaultLanguage: 'en-US',
 });
