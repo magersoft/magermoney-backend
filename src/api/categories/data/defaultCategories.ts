@@ -86,4 +86,15 @@ const EXPENSES: DefaultCategoryType[] = [
   },
 ];
 
-export const defaultCategories: DefaultCategoryType[] = [...INCOMES, ...EXPENSES];
+const SAVED: DefaultCategoryType[] = [
+  {
+    name: 'Cash',
+    type: $Enums.CategoryType.SAVED,
+  },
+  {
+    name: 'Deposit',
+    type: $Enums.CategoryType.SAVED,
+  },
+];
+
+export const defaultCategories: DefaultCategoryType[] = [...INCOMES, ...EXPENSES, ...SAVED];

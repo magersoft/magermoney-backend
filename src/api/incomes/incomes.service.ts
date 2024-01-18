@@ -107,7 +107,11 @@ export class IncomesService {
           },
         },
         orderBy: { dateOfIssue: 'desc' },
-        include: { currency: true, category: { select: { name: true } } },
+        include: {
+          currency: true,
+          savedFund: { select: { source: true, color: true } },
+          category: { select: { name: true } },
+        },
       },
       { page },
     );

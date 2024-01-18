@@ -1,7 +1,8 @@
 import { ApiProperty } from '@nestjs/swagger';
 
-import { RelationCategoryEntity } from '@/api/categories/entities/relation-category.entity';
+import { CategoryRelationEntity } from '@/api/categories/entities/category-relation.entity';
 import { CurrencyEntity } from '@/api/currencies/entities/currency.entity';
+import { SavedFundRelationEntity } from '@/api/saved-funds/entities/saved-fund-relation.entity';
 import { BaseEntity } from '@/shared/entities/base.entity';
 
 export class ExpenseEntity extends BaseEntity {
@@ -17,11 +18,14 @@ export class ExpenseEntity extends BaseEntity {
   @ApiProperty()
   public currencyId: number;
 
-  @ApiProperty({ type: () => RelationCategoryEntity })
-  public category: RelationCategoryEntity;
+  @ApiProperty({ type: () => CategoryRelationEntity })
+  public category: CategoryRelationEntity;
 
   @ApiProperty()
   public categoryId: number;
+
+  @ApiProperty({ type: () => SavedFundRelationEntity })
+  public savedFund: SavedFundRelationEntity;
 
   @ApiProperty()
   public savedFundId: number;

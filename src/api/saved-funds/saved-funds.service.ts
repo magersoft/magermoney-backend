@@ -1,28 +1,35 @@
 import { ForbiddenException, Injectable } from '@nestjs/common';
 import { PrismaService } from 'nestjs-prisma';
 
+import { CategoriesService } from '@/api/categories/categories.service';
 import { CurrenciesService } from '@/api/currencies/currencies.service';
 import { UpdateOrdersSavedFundsDto } from '@/api/saved-funds/dto/update-orders-saved-funds.dto';
 import { RequestContext } from '@/shared/types';
 
 import { CreateSavedFundDto } from './dto/create-saved-fund.dto';
 import { UpdateSavedFundDto } from './dto/update-saved-fund.dto';
+import { $Enums } from '.prisma/client';
 
 @Injectable()
 export class SavedFundsService {
   constructor(
     private readonly prisma: PrismaService,
     private readonly currenciesService: CurrenciesService,
+    private readonly categoriesService: CategoriesService,
   ) {}
 
   public async create(req: RequestContext, createSavedFundDto: CreateSavedFundDto) {
     const { id: userId } = req.user;
-    const { currency, ...savedFundDto } = createSavedFundDto;
+    const { currency: currencyCode, categoryId, ...savedFundDto } = createSavedFundDto;
 
-    const { id: currencyId } = await this.currenciesService.findOne(currency);
+    const currency = await this.currenciesService.findOne(currencyCode);
+
+    if (!categoryId) {
+      await this.categoriesService.create(req, { name: createSavedFundDto.source, type: $Enums.CategoryType.SAVED });
+    }
 
     return await this.prisma.savedFunds.create({
-      data: { ...savedFundDto, userId, currencyId },
+      data: { ...savedFundDto, userId, currencyId: currency.id },
       include: { currency: true },
     });
   }

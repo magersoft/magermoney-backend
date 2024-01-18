@@ -5,9 +5,12 @@ import {
   IsISO4217CurrencyCode,
   IsNotEmpty,
   IsNumber,
+  IsOptional,
+  IsPositive,
   IsString,
   MaxLength,
   Min,
+  MinLength,
 } from 'class-validator';
 
 export class CreateSavedFundDto {
@@ -16,6 +19,7 @@ export class CreateSavedFundDto {
   @IsDefined()
   @IsNotEmpty()
   @MaxLength(100)
+  @MinLength(3)
   public readonly source: string;
 
   @ApiProperty()
@@ -29,6 +33,13 @@ export class CreateSavedFundDto {
   @IsDefined()
   @IsISO4217CurrencyCode()
   public readonly currency: string;
+
+  @ApiProperty({ required: false })
+  @IsOptional()
+  @IsNumber()
+  @IsPositive()
+  @IsNotEmpty()
+  public readonly categoryId?: number;
 
   @ApiProperty({ required: false })
   @IsString()
