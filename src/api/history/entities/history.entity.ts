@@ -18,4 +18,7 @@ export class HistoryEntity {
 
   @ApiProperty()
   public dateOfIssue: Date;
+
+  @ApiProperty()
+  public source: string;
 }

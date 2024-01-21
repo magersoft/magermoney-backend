@@ -58,9 +58,9 @@ export class HistoryService {
     return Promise.all(
       history.map(async (item): Promise<HistoryEntity> => {
         if (item.type === HistoryType.Income) {
-          const { amount, currency, dateOfIssue, categoryId } = await this.prisma.incomes.findUnique({
+          const { amount, currency, dateOfIssue, categoryId, savedFund } = await this.prisma.incomes.findUnique({
             where: { id: item.id },
-            include: { currency: true },
+            include: { currency: true, savedFund: { select: { source: true } } },
           });
 
           const { name: title } = await this.categoriesService.findOne(req, categoryId);
@@ -71,13 +71,14 @@ export class HistoryService {
             amount,
             currency,
             dateOfIssue,
+            source: savedFund.source,
           };
         }
 
         if (item.type === HistoryType.Expense) {
-          const { amount, currency, dateOfIssue, categoryId } = await this.prisma.expenses.findUnique({
+          const { amount, currency, dateOfIssue, categoryId, savedFund } = await this.prisma.expenses.findUnique({
             where: { id: item.id },
-            include: { currency: true },
+            include: { currency: true, savedFund: { select: { source: true } } },
           });
 
           const { name: title } = await this.categoriesService.findOne(req, categoryId);
@@ -88,6 +89,7 @@ export class HistoryService {
             amount,
             currency,
             dateOfIssue,
+            source: savedFund.source,
           };
         }
 
@@ -103,6 +105,7 @@ export class HistoryService {
             amount,
             currency,
             dateOfIssue: createdAt,
+            source: from.source,
           };
         }
       }),

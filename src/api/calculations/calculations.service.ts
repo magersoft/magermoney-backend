@@ -1,16 +1,23 @@
 import { BadRequestException, Injectable } from '@nestjs/common';
 
 import { AccumulationFundsService } from '@/api/accumulation-funds/accumulation-funds.service';
+import { QuerySummaryExpensesByCategoriesDto } from '@/api/calculations/dto/query-summary-expenses-by-categories.dto';
+import { QuerySummaryIncomesByCategoriesDto } from '@/api/calculations/dto/query-summary-incomes-by-categories.dto';
+import { QueryTotalExpensesDto } from '@/api/calculations/dto/query-total-expenses.dto';
+import { QueryTotalIncomesDto } from '@/api/calculations/dto/query-total-incomes.dto';
 import { QueryTransferDetailsDto } from '@/api/calculations/dto/query-transfer-details.dto';
 import { AmountByPercentEntity } from '@/api/calculations/entities/amount-by-percent.entity';
 import { MonthlyBudgetEntity } from '@/api/calculations/entities/monthly-budget.entity';
 import { PercentByAmountEntity } from '@/api/calculations/entities/percent-by-amount.entity';
+import { SummaryExpensesByCategoriesEntity } from '@/api/calculations/entities/summary-expenses-by-categories.entity';
+import { SummaryIncomesByCategoriesEntity } from '@/api/calculations/entities/summary-incomes-by-categories.entity';
 import { TotalBalanceEntity } from '@/api/calculations/entities/total-balance.entity';
 import { TotalExpenseSourcesEntity } from '@/api/calculations/entities/total-expense-sources.entity';
+import { TotalExpensesEntity } from '@/api/calculations/entities/total-expenses.entity';
 import { TotalIncomeSourcesEntity } from '@/api/calculations/entities/total-income-source.entity';
-import { TotalMonthlyExpensesEntity } from '@/api/calculations/entities/total-monthly-expenses.entity';
-import { TotalMonthlyIncomesEntity } from '@/api/calculations/entities/total-monthly-incomes.entity';
+import { TotalIncomesEntity } from '@/api/calculations/entities/total-incomes.entity';
 import { TransferDetailsEntity } from '@/api/calculations/entities/transfer-details.entity';
+import { CategoriesService } from '@/api/categories/categories.service';
 import { CurrenciesService } from '@/api/currencies/currencies.service';
 import { ExpenseSourcesService } from '@/api/expense-sources/expense-sources.service';
 import { ExpensesService } from '@/api/expenses/expenses.service';
@@ -24,6 +31,7 @@ import { RequestContext } from '@/shared/types';
 export class CalculationsService {
   constructor(
     private readonly currenciesService: CurrenciesService,
+    private readonly categoriesService: CategoriesService,
     private readonly incomeSourcesService: IncomeSourcesService,
     private readonly savedFundsService: SavedFundsService,
     private readonly expenseSourcesService: ExpenseSourcesService,
@@ -101,10 +109,12 @@ export class CalculationsService {
     };
   }
 
-  public async getTotalMonthlyIncomes(req: RequestContext, currency: string): Promise<TotalMonthlyIncomesEntity> {
+  public async getTotalIncomes(req: RequestContext, query: QueryTotalIncomesDto): Promise<TotalIncomesEntity> {
+    const { currency, startDate, endDate } = query;
+
     if (!(await this.currenciesService.validateCurrency(currency))) return;
 
-    const incomes = await this.incomesService.findAllByPeriod(req, BEGIN_MONTH, END_MONTH);
+    const incomes = await this.incomesService.findAllByPeriod(req, startDate, endDate);
 
     let amount = 0;
 
@@ -123,10 +133,11 @@ export class CalculationsService {
     };
   }
 
-  public async getTotalMonthlyExpenses(req: RequestContext, currency: string): Promise<TotalMonthlyExpensesEntity> {
+  public async getTotalExpenses(req: RequestContext, query: QueryTotalExpensesDto): Promise<TotalExpensesEntity> {
+    const { currency, startDate, endDate } = query;
     if (!(await this.currenciesService.validateCurrency(currency))) return;
 
-    const expenses = await this.expensesService.findAllByPeriod(req, BEGIN_MONTH, END_MONTH);
+    const expenses = await this.expensesService.findAllByPeriod(req, startDate, endDate);
 
     let amount = 0;
 
@@ -146,8 +157,16 @@ export class CalculationsService {
   }
 
   public async getMonthlyBudget(req: RequestContext, currency: string): Promise<MonthlyBudgetEntity> {
-    const { amount: totalExpensesAmount } = await this.getTotalMonthlyExpenses(req, currency);
-    const { amount: totalIncomesAmount } = await this.getTotalMonthlyIncomes(req, currency);
+    const { amount: totalExpensesAmount } = await this.getTotalExpenses(req, {
+      currency,
+      startDate: BEGIN_MONTH,
+      endDate: END_MONTH,
+    });
+    const { amount: totalIncomesAmount } = await this.getTotalIncomes(req, {
+      currency,
+      startDate: BEGIN_MONTH,
+      endDate: END_MONTH,
+    });
 
     const accumulationFunds = await this.accumulationFundsService.findAll(req);
 
@@ -233,5 +252,79 @@ export class CalculationsService {
         currency: savedFundFrom.currency.code,
       },
     };
+  }
+
+  public async getSummaryIncomesByCategories(
+    req: RequestContext,
+    query: QuerySummaryIncomesByCategoriesDto,
+  ): Promise<SummaryIncomesByCategoriesEntity[]> {
+    const { startDate, endDate, currency: currencyCode } = query;
+
+    const currency = await this.currenciesService.findOne(currencyCode);
+    const incomes = await this.incomesService.findAllByPeriod(req, startDate, endDate);
+    const { amount: totalIncomesAmount } = await this.getTotalIncomes(req, {
+      currency: currency.code,
+      startDate,
+      endDate,
+    });
+
+    const results = {};
+
+    for (const income of incomes) {
+      const { id: categoryId, name: title } = await this.categoriesService.findOne(req, income.categoryId);
+      const amount = await this.currenciesService.additionOfCurrencyAmounts(
+        results[categoryId] ? results[categoryId].amount : 0,
+        income.amount,
+        income.currency.code,
+        currency.code,
+      );
+
+      results[categoryId] = {
+        categoryId,
+        title,
+        amount,
+        percent: (amount / totalIncomesAmount) * 100,
+        currency: currency.code,
+      };
+    }
+
+    return Object.keys(results).map((key) => results[key]);
+  }
+
+  public async getSummaryExpensesByCategories(
+    req: RequestContext,
+    query: QuerySummaryExpensesByCategoriesDto,
+  ): Promise<SummaryExpensesByCategoriesEntity[]> {
+    const { startDate, endDate, currency: currencyCode } = query;
+
+    const currency = await this.currenciesService.findOne(currencyCode);
+    const expenses = await this.expensesService.findAllByPeriod(req, startDate, endDate);
+    const { amount: totalExpensesAmount } = await this.getTotalExpenses(req, {
+      currency: currency.code,
+      startDate,
+      endDate,
+    });
+
+    const results = {};
+
+    for (const expense of expenses) {
+      const { id: categoryId, name: title } = await this.categoriesService.findOne(req, expense.categoryId);
+      const amount = await this.currenciesService.additionOfCurrencyAmounts(
+        results[categoryId] ? results[categoryId].amount : 0,
+        expense.amount,
+        expense.currency.code,
+        currency.code,
+      );
+
+      results[categoryId] = {
+        categoryId,
+        title,
+        amount,
+        percent: (amount / totalExpensesAmount) * 100,
+        currency: currency.code,
+      };
+    }
+
+    return Object.keys(results).map((key) => results[key]);
   }
 }

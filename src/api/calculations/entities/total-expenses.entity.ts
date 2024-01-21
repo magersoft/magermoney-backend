@@ -1,6 +1,6 @@
 import { ApiProperty } from '@nestjs/swagger';
 
-export class TotalMonthlyIncomesEntity {
+export class TotalExpensesEntity {
   @ApiProperty()
   public amount: number;
 

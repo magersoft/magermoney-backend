@@ -35,13 +35,13 @@ export class CategoriesController {
 
   @Patch(':id')
   @ApiOkResponse({ type: CategoryEntity })
-  update(@Param('id') id: string, @Body() updateCategoryDto: UpdateCategoryDto) {
-    return this.categoriesService.update(+id, updateCategoryDto);
+  update(@Request() req: RequestContext, @Param('id') id: string, @Body() updateCategoryDto: UpdateCategoryDto) {
+    return this.categoriesService.update(req, +id, updateCategoryDto);
   }
 
   @Delete(':id')
   @ApiOkResponse({ type: CategoryEntity })
-  remove(@Param('id') id: string) {
-    return this.categoriesService.remove(+id);
+  remove(@Request() req: RequestContext, @Param('id') id: string) {
+    return this.categoriesService.remove(req, +id);
   }
 }
