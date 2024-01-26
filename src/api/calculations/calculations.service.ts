@@ -272,6 +272,7 @@ export class CalculationsService {
 
     for (const income of incomes) {
       const { id: categoryId, name: title } = await this.categoriesService.findOne(req, income.categoryId);
+
       const amount = await this.currenciesService.additionOfCurrencyAmounts(
         results[categoryId] ? results[categoryId].amount : 0,
         income.amount,
@@ -279,16 +280,20 @@ export class CalculationsService {
         currency.code,
       );
 
+      const percent = (amount / totalIncomesAmount) * 100;
+
       results[categoryId] = {
         categoryId,
         title,
         amount,
-        percent: (amount / totalIncomesAmount) * 100,
+        percent,
         currency: currency.code,
       };
     }
 
-    return Object.keys(results).map((key) => results[key]);
+    return Object.keys(results)
+      .map((key) => results[key])
+      .sort((a, b) => b.percent - a.percent);
   }
 
   public async getSummaryExpensesByCategories(
@@ -316,15 +321,19 @@ export class CalculationsService {
         currency.code,
       );
 
+      const percent = (amount / totalExpensesAmount) * 100;
+
       results[categoryId] = {
         categoryId,
         title,
         amount,
-        percent: (amount / totalExpensesAmount) * 100,
+        percent,
         currency: currency.code,
       };
     }
 
-    return Object.keys(results).map((key) => results[key]);
+    return Object.keys(results)
+      .map((key) => results[key])
+      .sort((a, b) => b.percent - a.percent);
   }
 }

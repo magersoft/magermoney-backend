@@ -10,6 +10,7 @@ import { ExpenseEntity } from '@/api/expenses/entities/expense.entity';
 import { SavedFundsService } from '@/api/saved-funds/saved-funds.service';
 import { usePaginator } from '@/shared/features';
 import { RequestContext } from '@/shared/types';
+import { filterBetweenDates } from '@/shared/utils';
 
 import { CreateExpenseDto } from './dto/create-expense.dto';
 import { UpdateExpenseDto } from './dto/update-expense.dto';
@@ -26,7 +27,14 @@ export class ExpensesService {
 
   public async create(req: RequestContext, createExpenseDto: CreateExpenseDto) {
     const { id: userId } = req.user;
-    const { title, expenseSourceId, savedFundId, categoryId, currency: currencyCode, ...expenseDto } = createExpenseDto;
+    const {
+      customCategoryName,
+      expenseSourceId,
+      savedFundId,
+      categoryId,
+      currency: currencyCode,
+      ...expenseDto
+    } = createExpenseDto;
     const isSingleExpense = !expenseSourceId;
 
     const currency = await this.currenciesService.findOne(currencyCode);
@@ -39,7 +47,7 @@ export class ExpensesService {
     if (isSingleExpense) {
       const category = categoryId
         ? await this.categoriesService.findOne(req, categoryId)
-        : await this.categoriesService.create(req, { name: title, type: $Enums.CategoryType.EXPENSE });
+        : await this.categoriesService.create(req, { name: customCategoryName, type: $Enums.CategoryType.EXPENSE });
 
       const amount = await this.currenciesService.subtractionOfCurrencyAmounts(
         savedFund.amount,
@@ -104,10 +112,7 @@ export class ExpensesService {
       {
         where: {
           userId,
-          dateOfIssue: {
-            gte: startDate,
-            lt: endDate,
-          },
+          dateOfIssue: filterBetweenDates(startDate, endDate),
         },
         orderBy: { dateOfIssue: 'desc' },
         include: {
@@ -126,10 +131,7 @@ export class ExpensesService {
     return await this.prisma.expenses.findMany({
       where: {
         userId,
-        dateOfIssue: {
-          gte: startDate,
-          lte: endDate,
-        },
+        dateOfIssue: filterBetweenDates(startDate, endDate),
       },
       include: { currency: true },
     });

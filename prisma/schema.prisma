@@ -76,6 +76,7 @@ model ExpenseSources {
 
 model Incomes {
   id          Int      @id @default(autoincrement())
+  title       String?  @db.VarChar(100)
   amount      Float    @db.DoublePrecision
   dateOfIssue DateTime @default(now())
 
@@ -100,6 +101,7 @@ model Incomes {
 
 model Expenses {
   id          Int      @id @default(autoincrement())
+  title       String?  @db.VarChar(100)
   amount      Float    @db.DoublePrecision
   dateOfIssue DateTime @default(now())
 

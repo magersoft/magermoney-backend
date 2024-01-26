@@ -27,12 +27,16 @@ export class HistoryService {
 
     const dateCondition =
       startDate && endDate
-        ? `AND "dateOfIssue" BETWEEN '${new Date(startDate).toISOString()}' AND '${new Date(endDate).toISOString()}'`
+        ? `AND "dateOfIssue" BETWEEN '${new Date(startDate).toISOString()}' AND '${new Date(
+            endDate.setHours(23, 59, 59, 999),
+          ).toISOString()}'`
         : '';
 
     const dateTransferCondition =
       startDate && endDate
-        ? `AND "createdAt" BETWEEN '${new Date(startDate).toISOString()}' AND '${new Date(endDate).toISOString()}'`
+        ? `AND "createdAt" BETWEEN '${new Date(startDate).toISOString()}' AND '${new Date(
+            endDate.setHours(23, 59, 59, 999),
+          ).toISOString()}'`
         : '';
 
     const savedFundCondition = query.savedFundId ? `AND "savedFundId" = ${savedFundId}` : '';

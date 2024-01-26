@@ -10,6 +10,7 @@ import { IncomeEntity } from '@/api/incomes/entities/income.entity';
 import { SavedFundsService } from '@/api/saved-funds/saved-funds.service';
 import { usePaginator } from '@/shared/features';
 import { RequestContext } from '@/shared/types';
+import { filterBetweenDates } from '@/shared/utils';
 
 import { CreateIncomeDto } from './dto/create-income.dto';
 import { UpdateIncomeDto } from './dto/update-income.dto';
@@ -101,10 +102,7 @@ export class IncomesService {
       {
         where: {
           userId,
-          dateOfIssue: {
-            gte: startDate,
-            lt: endDate,
-          },
+          dateOfIssue: filterBetweenDates(startDate, endDate),
         },
         orderBy: { dateOfIssue: 'desc' },
         include: {
@@ -123,10 +121,7 @@ export class IncomesService {
     return await this.prisma.incomes.findMany({
       where: {
         userId,
-        dateOfIssue: {
-          gte: startDate,
-          lt: endDate,
-        },
+        dateOfIssue: filterBetweenDates(startDate, endDate),
       },
       include: { currency: true, category: { select: { name: true } } },
     });

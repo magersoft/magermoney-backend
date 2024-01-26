@@ -7,6 +7,9 @@ import { BaseEntity } from '@/shared/entities/base.entity';
 
 export class IncomeEntity extends BaseEntity {
   @ApiProperty()
+  public title: string;
+
+  @ApiProperty()
   public amount: number;
 
   @ApiProperty()
