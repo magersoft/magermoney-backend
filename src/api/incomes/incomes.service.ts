@@ -28,7 +28,14 @@ export class IncomesService {
 
   public async create(req: RequestContext, createIncomeDto: CreateIncomeDto) {
     const { id: userId } = req.user;
-    const { title, incomeSourceId, savedFundId, categoryId, currency: currencyCode, ...incomeDto } = createIncomeDto;
+    const {
+      customCategoryName,
+      incomeSourceId,
+      savedFundId,
+      categoryId,
+      currency: currencyCode,
+      ...incomeDto
+    } = createIncomeDto;
     const isSingleIncome = !incomeSourceId;
 
     const currency = await this.currenciesService.findOne(currencyCode);
@@ -37,7 +44,7 @@ export class IncomesService {
     if (isSingleIncome) {
       const category = categoryId
         ? await this.categoriesService.findOne(req, categoryId)
-        : await this.categoriesService.create(req, { name: title, type: $Enums.CategoryType.INCOME });
+        : await this.categoriesService.create(req, { name: customCategoryName, type: $Enums.CategoryType.INCOME });
 
       const amount = await this.currenciesService.additionOfCurrencyAmounts(
         savedFund.amount,
@@ -76,6 +83,7 @@ export class IncomesService {
 
     const createIncome = this.prisma.incomes.create({
       data: {
+        title: incomeDto.title,
         amount: incomeSource.amount,
         currencyId: incomeSource.currencyId,
         userId: incomeSource.userId,

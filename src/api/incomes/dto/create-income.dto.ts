@@ -40,6 +40,14 @@ export class CreateIncomeDto {
   @IsNotEmpty()
   public readonly categoryId?: number;
 
+  @ApiProperty({ required: false })
+  @IsOptional()
+  @IsString()
+  @IsNotEmpty()
+  @MaxLength(100)
+  @MinLength(3)
+  public readonly customCategoryName?: string;
+
   @ApiProperty()
   @IsDate()
   @IsDefined()

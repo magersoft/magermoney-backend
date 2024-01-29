@@ -86,6 +86,7 @@ export class ExpensesService {
 
     const createExpense = this.prisma.expenses.create({
       data: {
+        title: expenseDto.title,
         amount: expenseSource.amount,
         currencyId: expenseSource.currencyId,
         userId: expenseSource.userId,

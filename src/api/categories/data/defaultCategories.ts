@@ -45,11 +45,11 @@ const INCOMES: DefaultCategoryType[] = [
 
 const EXPENSES: DefaultCategoryType[] = [
   {
-    name: 'Rental Flat',
+    name: 'Housing',
     type: $Enums.CategoryType.EXPENSE,
   },
   {
-    name: 'Rental Car',
+    name: 'Car',
     type: $Enums.CategoryType.EXPENSE,
   },
   {
