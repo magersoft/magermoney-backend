@@ -1,5 +1,6 @@
 import { ApiProperty } from '@nestjs/swagger';
 
+import { CategoryRelationEntity } from '@/api/categories/entities/category-relation.entity';
 import { CurrencyEntity } from '@/api/currencies/entities/currency.entity';
 import { HistoryType } from '@/api/history/enums/history-type.enum';
 
@@ -15,6 +16,9 @@ export class HistoryEntity {
 
   @ApiProperty({ type: () => CurrencyEntity })
   public currency: CurrencyEntity;
+
+  @ApiProperty({ type: () => CategoryRelationEntity })
+  public category: CategoryRelationEntity;
 
   @ApiProperty()
   public dateOfIssue: Date;

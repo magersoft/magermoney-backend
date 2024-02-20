@@ -62,17 +62,16 @@ export class HistoryService {
     return Promise.all(
       history.map(async (item): Promise<HistoryEntity> => {
         if (item.type === HistoryType.Income) {
-          const { amount, currency, dateOfIssue, categoryId, savedFund } = await this.prisma.incomes.findUnique({
+          const { title, amount, dateOfIssue, currency, category, savedFund } = await this.prisma.incomes.findUnique({
             where: { id: item.id },
-            include: { currency: true, savedFund: { select: { source: true } } },
+            include: { currency: true, savedFund: { select: { source: true } }, category: { select: { name: true } } },
           });
-
-          const { name: title } = await this.categoriesService.findOne(req, categoryId);
 
           return {
             type: item.type,
             title,
             amount,
+            category,
             currency,
             dateOfIssue,
             source: savedFund.source,
@@ -80,16 +79,15 @@ export class HistoryService {
         }
 
         if (item.type === HistoryType.Expense) {
-          const { amount, currency, dateOfIssue, categoryId, savedFund } = await this.prisma.expenses.findUnique({
+          const { title, amount, dateOfIssue, currency, category, savedFund } = await this.prisma.expenses.findUnique({
             where: { id: item.id },
-            include: { currency: true, savedFund: { select: { source: true } } },
+            include: { currency: true, savedFund: { select: { source: true } }, category: { select: { name: true } } },
           });
-
-          const { name: title } = await this.categoriesService.findOne(req, categoryId);
 
           return {
             type: item.type,
             title,
+            category,
             amount,
             currency,
             dateOfIssue,
@@ -105,7 +103,8 @@ export class HistoryService {
 
           return {
             type: item.type,
-            title: `${from.source} - ${to.source}`,
+            title: 'Transfer Funds',
+            category: { name: `${from.source} - ${to.source}` },
             amount,
             currency,
             dateOfIssue: createdAt,
