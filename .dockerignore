@@ -1,4 +1,6 @@
 dist            # Ignore the dist folder
+db              # Ignore the db folder
+secrets         # Ignore the secrets folder
 .dockerignore   # Ignore the ignore
 node_modules    # Ignore local node_modules folder
 npm-debug.log   # Debug files
