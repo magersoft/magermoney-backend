@@ -31,6 +31,7 @@ COPY --chown=node:node --from=development /usr/src/app/node_modules ./node_modul
 COPY --chown=node:node . .
 
 # Run the build command which creates the production bundle
+RUN npx run prisma:generate
 RUN npm run build
 
 # Set NODE_ENV environment variable
@@ -49,4 +50,4 @@ COPY --chown=node:node --from=build /usr/src/app/node_modules ./node_modules
 COPY --chown=node:node --from=build /usr/src/app/dist ./dist
 
 # Start the server using the production build
-CMD [ "node", "dist/main.js" ]
+CMD ["node", "dist/src/main"]
