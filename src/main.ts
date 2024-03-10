@@ -1,6 +1,6 @@
-import { ValidationPipe } from '@nestjs/common';
+import { Logger, ValidationPipe } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import { HttpAdapterHost, NestFactory } from '@nestjs/core';
+import { HttpAdapterHost, NestApplication, NestFactory } from '@nestjs/core';
 import { NestExpressApplication } from '@nestjs/platform-express';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 import { PrismaClientExceptionFilter } from 'nestjs-prisma';
@@ -17,6 +17,8 @@ async function bootstrap() {
   const config = app.get(ConfigService);
   const { httpAdapter } = app.get(HttpAdapterHost);
   const apiGlobalPrefix = `${config.get<string>('apiPrefix')}/${config.get<string>('apiVersion')}`;
+  const port = config.get<number>('port');
+  const host = config.get<string>('host');
 
   app.enableCors();
   app.setGlobalPrefix(apiGlobalPrefix);
@@ -47,6 +49,8 @@ async function bootstrap() {
 
   SwaggerModule.setup(swaggerPath, app, swaggerDocument);
 
-  await app.listen(config.get<number>('port'), config.get<string>('host'));
+  await app.listen(port, host);
+
+  Logger.log(`Listening on https://${host}:${port}`, NestApplication.name);
 }
 bootstrap();

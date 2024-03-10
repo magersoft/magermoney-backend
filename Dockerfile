@@ -30,12 +30,12 @@ COPY --chown=node:node --from=development /usr/src/app/node_modules ./node_modul
 
 COPY --chown=node:node . .
 
+# Set NODE_ENV environment variable for build
+ENV NODE_ENV production
+
 # Run the build command which creates the production bundle
 RUN npm run prisma:generate
 RUN npm run build
-
-# Set NODE_ENV environment variable
-ENV NODE_ENV production
 
 # Running `npm ci` removes the existing node_modules directory and passing in --only=production ensures that only the production dependencies are installed. This ensures that the node_modules directory is as optimized as possible
 RUN npm ci --only=production && npm cache clean --force
@@ -50,6 +50,9 @@ COPY --chown=node:node --from=build /usr/src/app/node_modules ./node_modules
 COPY --chown=node:node --from=build /usr/src/app/package*.json ./
 COPY --chown=node:node --from=build /usr/src/app/dist ./dist
 COPY --chown=node:node --from=build /usr/src/app/prisma ./prisma/
+
+# Set NODE_ENV environment variable for production
+ENV NODE_ENV production
 
 # Set exposed port
 EXPOSE 4000
